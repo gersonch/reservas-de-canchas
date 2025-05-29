@@ -1,6 +1,14 @@
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { useLocationStore } from "@/store/useLocation";
-import { Dimensions, Image, StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import {
+  Dimensions,
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 interface Complejo {
   id: number;
@@ -21,6 +29,8 @@ export function ComplejoCard({ complejo, isLoading }: ComplejoCardProps) {
   const imagenReserva =
     "https://img.freepik.com/vector-premium/vector-icono-imagen-predeterminado-pagina-imagen-faltante-diseno-sitio-web-o-aplicacion-movil-no-hay-foto-disponible_87543-11093.jpg";
 
+  const [numberOfItems, setNumberOfItems] = useState(10);
+
   const dataFilterdByCity = city
     ? complejo.filter((item) => {
         const normalizedCity = item.city
@@ -36,6 +46,11 @@ export function ComplejoCard({ complejo, isLoading }: ComplejoCardProps) {
         return normalizedCity === normalizedTargetCity;
       })
     : complejo;
+  if (numberOfItems > dataFilterdByCity.length) {
+    setNumberOfItems(dataFilterdByCity.length);
+  }
+
+  console.log("Filtered data by city:", dataFilterdByCity);
 
   return (
     <View style={styles.container}>
@@ -48,39 +63,50 @@ export function ComplejoCard({ complejo, isLoading }: ComplejoCardProps) {
               <View style={styles.skeletonText} />
             </View>
           ))
-        : dataFilterdByCity.map((item, index) => {
-            const sourceImage = item.image_url ? item.image_url : imagenReserva;
-            return (
-              <View key={index} style={styles.card}>
-                <Image
-                  source={{ uri: sourceImage }}
-                  style={styles.image}
-                  resizeMode="cover"
-                  // Oculta el skeleton cuando la imagen se carga
-                />
-                <View style={styles.cardContent}>
-                  <View style={styles.textContainer}>
-                    <Text style={styles.cardTitle}>{item.name}</Text>
-                    <Text style={styles.cardSub}>
-                      {item.address}, {item.city}
-                    </Text>
-                    <Text style={styles.cardSub}>{item.country}</Text>
-                  </View>
-                  <View style={styles.starsContainer}>
-                    <IconSymbol
-                      style={{ marginTop: 8 }}
-                      size={15}
-                      name="star.fill"
-                      color={"#FFD700"}
-                    />
-                    <Text style={styles.starsText}>
-                      {item.stars === null ? "n.n" : item.stars.toFixed(1)}
-                    </Text>
+        : dataFilterdByCity
+            .map((item, index) => {
+              const sourceImage = item.image_url
+                ? item.image_url
+                : imagenReserva;
+              return (
+                <View key={index} style={styles.card}>
+                  <Image
+                    source={{ uri: sourceImage }}
+                    style={styles.image}
+                    resizeMode="cover"
+                    // Oculta el skeleton cuando la imagen se carga
+                  />
+                  <View style={styles.cardContent}>
+                    <View style={styles.textContainer}>
+                      <Text style={styles.cardTitle}>{item.name}</Text>
+                      <Text style={styles.cardSub}>
+                        {item.address}, {item.city}
+                      </Text>
+                      <Text style={styles.cardSub}>{item.country}</Text>
+                    </View>
+                    <View style={styles.starsContainer}>
+                      <IconSymbol
+                        style={{ marginTop: 8 }}
+                        size={15}
+                        name="star.fill"
+                        color={"#FFD700"}
+                      />
+                      <Text style={styles.starsText}>
+                        {item.stars === null ? "n.n" : item.stars.toFixed(1)}
+                      </Text>
+                    </View>
                   </View>
                 </View>
-              </View>
-            );
-          })}
+              );
+            })
+            .slice(0, numberOfItems)}
+
+      <Pressable
+        onPress={() => setNumberOfItems((prev) => prev + 10)}
+        style={{ marginTop: 20 }}
+      >
+        <Text style={{ color: "#007BFF" }}>Cargar más...</Text>
+      </Pressable>
     </View>
   );
 }

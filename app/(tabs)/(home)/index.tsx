@@ -11,6 +11,8 @@ export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const searchModalRef = useRef<{ openModal: () => void }>(null);
 
+  const [numberOfItems, setNumberOfItems] = useState(10);
+
   function handleSearchPressable() {
     if (searchModalRef.current) {
       searchModalRef.current.openModal();
@@ -52,6 +54,7 @@ export default function Home() {
           }))}
           isLoading={isLoading}
         />
+        {/*si el numero de items mostrados por ciudad es mayor a los items de esa ciudad quitar el cargar mas*/}
       </ScrollView>
     </View>
   );
