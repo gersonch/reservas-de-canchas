@@ -1,5 +1,6 @@
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { useLocationStore } from "@/store/useLocation";
+import { Link } from "expo-router";
 import { useState } from "react";
 import {
   Dimensions,
@@ -50,8 +51,6 @@ export function ComplejoCard({ complejo, isLoading }: ComplejoCardProps) {
     setNumberOfItems(dataFilterdByCity.length);
   }
 
-  console.log("Filtered data by city:", dataFilterdByCity);
-
   return (
     <View style={styles.container}>
       {isLoading
@@ -69,7 +68,14 @@ export function ComplejoCard({ complejo, isLoading }: ComplejoCardProps) {
                 ? item.image_url
                 : imagenReserva;
               return (
-                <View key={index} style={styles.card}>
+                <Link
+                  href={{
+                    pathname: "/details/[id]",
+                    params: { id: item.id },
+                  }}
+                  key={index}
+                  style={styles.card}
+                >
                   <Image
                     source={{ uri: sourceImage }}
                     style={styles.image}
@@ -96,7 +102,7 @@ export function ComplejoCard({ complejo, isLoading }: ComplejoCardProps) {
                       </Text>
                     </View>
                   </View>
-                </View>
+                </Link>
               );
             })
             .slice(0, numberOfItems)}
