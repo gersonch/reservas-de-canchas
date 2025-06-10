@@ -1,18 +1,25 @@
 import { BackButton } from "@/components/BackButton";
 import { complejos } from "@/mockups/complejos";
 import { useLocalSearchParams } from "expo-router/build/hooks";
-import { Text, View } from "react-native";
+import { ScrollView, Text } from "react-native";
+import { CardDetalles } from "./CardDetalles";
 
 export default function DetailsPage() {
   const { id } = useLocalSearchParams();
 
-  const complejoItem = complejos[parseInt(id as string, 10)];
+  // Busca el complejo por su id
+  const complejoItem = complejos.find((c) => String(c.id) === String(id));
+
+  if (!complejoItem) {
+    return <Text>Complejo no encontrado</Text>;
+  }
+
   return (
     <>
       <BackButton />
-      <View>
-        <Text>{complejoItem.name}</Text>
-      </View>
+      <ScrollView>
+        <CardDetalles item={complejoItem} />
+      </ScrollView>
     </>
   );
 }

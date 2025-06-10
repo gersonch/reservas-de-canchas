@@ -1,5 +1,6 @@
 import { complejos } from "@/mockups/complejos";
 import { useLocationStore } from "@/store/useLocation";
+import { Link } from "expo-router";
 import React, { forwardRef, useImperativeHandle, useState } from "react";
 import {
   Animated,
@@ -127,20 +128,20 @@ export const SearchModal = forwardRef(function SearchModal(
               {filteredComplejos.length !== 0 ? (
                 <ScrollView style={[styles.containerCards]}>
                   {filteredComplejos.map((complejo) => (
-                    <Pressable
+                    <Link
                       key={complejo.id}
-                      style={({ pressed }) => [
-                        styles.cardItem,
-                        pressed && { backgroundColor: "#e0e0e0" }, // efecto al presionar
-                      ]}
-                      android_ripple={{ color: "#ddd" }} // ripple en Android
-                      onPress={() => {
-                        // aquí puedes manejar un evento al presionar el complejo (opcional)
+                      href={{
+                        pathname: "/details/[id]",
+                        params: { id: complejo.id },
                       }}
+                      onPress={closeModal}
+                      style={styles.cardItem} // <-- Aplica el estilo aquí
                     >
-                      <Text style={styles.cardTitle}>{complejo.name}</Text>
-                      <Text style={styles.cardSubtitle}>{complejo.city}</Text>
-                    </Pressable>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.cardTitle}>{complejo.name}</Text>
+                        <Text style={styles.cardSubtitle}>{complejo.city}</Text>
+                      </View>
+                    </Link>
                   ))}
                 </ScrollView>
               ) : (
@@ -183,17 +184,21 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 5,
   },
-  containerInputCards: { flex: 1, width: "100%" },
+  containerInputCards: {
+    flex: 1,
+    width: "100%",
+  },
 
   containerCards: {
     width: "100%",
     height: "85%",
     maxHeight: "95%", // limita la altura del scroll para que no ocupe todo el modal
+
     // limita altura del scroll para que no ocupe todo el modal
   },
   cardItem: {
     backgroundColor: "white",
-    paddingBlock: 10,
+    paddingBlock: 25,
     paddingInline: 20,
     borderRadius: 8,
     marginVertical: 6,

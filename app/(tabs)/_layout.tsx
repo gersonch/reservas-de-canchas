@@ -1,7 +1,9 @@
 import { IconSymbol } from "@/components/ui/IconSymbol";
+import { useNavigation } from "@react-navigation/native";
 import { Tabs } from "expo-router";
 
 export default function TabLayout() {
+  const navigation = useNavigation();
   return (
     <Tabs
       screenOptions={{
