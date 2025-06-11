@@ -27,11 +27,11 @@ export default function LocationComponent() {
       if (address.length > 0) {
         const locationInfo = address[0];
         // Si city está vacío o es muy específico, usa region
-        let ciudad = locationInfo.district;
+        let ciudad = locationInfo.region;
         if (!ciudad || ciudad.length < 3 || ciudad === locationInfo.district) {
           ciudad = locationInfo.region;
         }
-        setCity(ciudad);
+        setCity(ciudad?.split(" ")[0] || ""); // Asigna la ciudad al store
       } else {
         setErrorMsg("No se pudo obtener la ciudad");
       }

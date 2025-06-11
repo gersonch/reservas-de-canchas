@@ -1,3 +1,4 @@
+import { IComplejo } from "@/app/common/types/compejo";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { useLocationStore } from "@/store/useLocation";
 import { Link } from "expo-router";
@@ -11,18 +12,8 @@ import {
   View,
 } from "react-native";
 
-interface Complejo {
-  id: number;
-  name: string;
-  country: string;
-  city: string;
-  region: string;
-  address: string;
-  stars: number | null;
-  image_url: string;
-}
 interface ComplejoCardProps {
-  complejo: Complejo[];
+  complejo: IComplejo[];
   isLoading: boolean;
 }
 
@@ -73,7 +64,7 @@ export function ComplejoCard({ complejo, isLoading }: ComplejoCardProps) {
                 <Link
                   href={{
                     pathname: "/details/[id]",
-                    params: { id: item.id },
+                    params: { _id: item._id },
                   }}
                   key={index}
                   style={styles.card}
@@ -94,7 +85,6 @@ export function ComplejoCard({ complejo, isLoading }: ComplejoCardProps) {
                     </View>
                     <View style={styles.starsContainer}>
                       <IconSymbol
-                        style={{ marginTop: 8 }}
                         size={15}
                         name="star.fill"
                         color={"#FFD700"}
@@ -135,7 +125,7 @@ const styles = StyleSheet.create({
   },
   card: {
     borderRadius: 10,
-    padding: 16,
+    padding: 12,
     marginBottom: 16,
     shadowColor: "rgba(0, 0, 0, 0.1)",
     shadowOffset: { width: 0, height: 2 },
@@ -150,22 +140,23 @@ const styles = StyleSheet.create({
     height: 300,
     borderRadius: 15,
     marginBottom: 8,
-    paddingInline: 10, // Espacio entre la imagen y el borde de la card
   },
   cardContent: {
     flexDirection: "row", // Coloca el texto y las estrellas en una fila
     justifyContent: "space-between", // Distribuye los elementos a los extremos
-    width: screenWidth - 40,
+    width: screenWidth,
   },
-  textContainer: { marginTop: 8 }, // Espacio entre la imagen y el texto
+  textContainer: { marginTop: 8 },
   starsContainer: {
-    flexDirection: "row", // Coloca el ícono y el número en una fila
+    marginTop: 8, // Espacio entre la imagen y las estrellas
+    flexDirection: "row",
+    alignItems: "flex-start", // <-- Esto alinea arriba el contenido
   },
   starsText: {
     marginLeft: 4, // Espaciado entre el ícono y el número
     fontSize: 14,
     color: "#666",
-    marginTop: 8, // Alinea verticalmente el texto con el ícono
+    // Elimina marginTop aquí
   },
   cardTitle: {
     fontSize: 18,

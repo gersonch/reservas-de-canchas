@@ -1,32 +1,30 @@
 import LocationComponent from "@/components/Location";
 import { IconSymbol } from "@/components/ui/IconSymbol";
-//import { complejos } from "@/mockups/complejos";
+import { fetchData } from "@/store/fetch"; // o tu función fetch centralizada
+import { useComplexStore } from "@/store/useComplexStore"; // importa el store
 import { useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { ComplejoCard } from "./components/ComplejoCard";
 import { SearchModal } from "./components/SearchModal";
 
 export default function Home() {
-  const isLoading = false; // Simula el estado de carga, puedes cambiarlo según tu lógica
+  const isLoading = false;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const searchModalRef = useRef<{ openModal: () => void }>(null);
-  const [complejos, setComplejos] = useState([]);
+
+  // Obtén los complejos desde el store
+  const complejos = useComplexStore((state) => state.complejos);
+  const setComplejos = useComplexStore((state) => state.setComplejos);
 
   useEffect(() => {
     const fetchComplejos = async () => {
-      const response = await fetch("http://192.168.2.103:3000/complexes");
-      if (!response.ok) {
-        console.error("Error fetching complejos:");
-        return;
+      const data = await fetchData({ route: "complexes" });
+      if (data) {
+        setComplejos(data); // Guarda en zustand
       }
-      const data = await response.json();
-
-      setComplejos(data);
     };
     fetchComplejos();
-  }, []);
-
-  //const [numberOfItems, setNumberOfItems] = useState(10);
+  }, [setComplejos]);
 
   function handleSearchPressable() {
     if (searchModalRef.current) {
@@ -64,7 +62,13 @@ export default function Home() {
         {complejos.length === 0 ? (
           <Text>No hay complejos cargados</Text>
         ) : (
-          <ComplejoCard complejo={complejos} isLoading={isLoading} />
+          <ComplejoCard
+            complejo={complejos.map((c: any) => ({
+              ...c,
+              id: Number(c.id),
+            }))}
+            isLoading={isLoading}
+          />
         )}
       </ScrollView>
     </View>

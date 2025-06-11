@@ -1,5 +1,5 @@
 export interface IComplejo {
-  id: string;
+  _id: string;
   name: string;
   region?: string;
   country: string;
