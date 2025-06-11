@@ -1,7 +1,8 @@
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { IComplejo } from "../common/types/compejo";
 
-export function CardDetalles({ item }) {
+export function CardDetalles({ item }: { item: IComplejo }) {
   const imagenReserva =
     "https://img.freepik.com/vector-premium/vector-icono-imagen-predeterminado-pagina-imagen-faltante-diseno-sitio-web-o-aplicacion-movil-no-hay-foto-disponible_87543-11093.jpg";
 
@@ -32,9 +33,8 @@ export function CardDetalles({ item }) {
               justifyContent: "center",
             }}
           >
-            <IconSymbol size={15} name="star.fill" color={"#FFD700"} />
+            <IconSymbol size={15} name="star" color={"#FFD700"} />
             <Text style={styles.ratingText}>
-              {" "}
               {item.stars === null ? "No calificado" : item.stars.toFixed(1)}
             </Text>
           </View>

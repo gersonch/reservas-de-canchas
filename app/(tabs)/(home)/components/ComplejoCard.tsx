@@ -1,3 +1,4 @@
+import { IconSymbol } from "@/components/ui/IconSymbol";
 import { useLocationStore } from "@/store/useLocation";
 import { Link } from "expo-router";
 import { useState } from "react";
@@ -15,6 +16,7 @@ interface Complejo {
   name: string;
   country: string;
   city: string;
+  region: string;
   address: string;
   stars: number | null;
   image_url: string;
@@ -33,13 +35,14 @@ export function ComplejoCard({ complejo, isLoading }: ComplejoCardProps) {
 
   const dataFilterdByCity = city
     ? complejo.filter((item) => {
-        const normalizedCity = item.city
+        if (!item.region || !city) return false; // <-- Evita el error
+        const normalizedCity = item.region
           .normalize("NFD")
           .replace(/[\u0300-\u036f]/g, "") // Elimina los diacríticos
           .toLowerCase();
 
         const normalizedTargetCity = city
-          ?.normalize("NFD")
+          .normalize("NFD")
           .replace(/[\u0300-\u036f]/g, "")
           .toLowerCase();
 
@@ -89,7 +92,7 @@ export function ComplejoCard({ complejo, isLoading }: ComplejoCardProps) {
                       </Text>
                       <Text style={styles.cardSub}>{item.country}</Text>
                     </View>
-                    {/* <View style={styles.starsContainer}>
+                    <View style={styles.starsContainer}>
                       <IconSymbol
                         style={{ marginTop: 8 }}
                         size={15}
@@ -99,7 +102,7 @@ export function ComplejoCard({ complejo, isLoading }: ComplejoCardProps) {
                       <Text style={styles.starsText}>
                         {item.stars === null ? "n.n" : item.stars.toFixed(1)}
                       </Text>
-                    </View> */}
+                    </View>
                   </View>
                 </Link>
               );
@@ -131,10 +134,10 @@ const styles = StyleSheet.create({
     color: "#888",
   },
   card: {
-    borderRadius: 8,
+    borderRadius: 10,
     padding: 16,
     marginBottom: 16,
-    shadowColor: "#000",
+    shadowColor: "rgba(0, 0, 0, 0.1)",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
