@@ -1,4 +1,4 @@
-import { complejos } from "@/mockups/complejos";
+import { useComplexStore } from "@/store/useComplexStore";
 import { useLocationStore } from "@/store/useLocation";
 import { Link } from "expo-router";
 import React, { forwardRef, useImperativeHandle, useState } from "react";
@@ -27,6 +27,7 @@ export const SearchModal = forwardRef(function SearchModal(
   const opacity = useState(new Animated.Value(0))[0];
   const overlayOpacity = useState(new Animated.Value(0))[0];
   const city = useLocationStore((state) => state.city);
+  const complejos = useComplexStore((state) => state.complejos);
   const [searchText, setSearchText] = useState("");
   const [filteredComplejos, setFilteredComplejos] = useState<typeof complejos>(
     []
@@ -129,10 +130,10 @@ export const SearchModal = forwardRef(function SearchModal(
                 <ScrollView style={[styles.containerCards]}>
                   {filteredComplejos.map((complejo) => (
                     <Link
-                      key={complejo.id}
+                      key={complejo._id}
                       href={{
                         pathname: "/details/[id]",
-                        params: { id: complejo.id },
+                        params: { _id: complejo._id },
                       }}
                       onPress={closeModal}
                       style={styles.cardItem} // <-- Aplica el estilo aquí

@@ -2,6 +2,7 @@ export const complejos = [
   {
     id: "9",
     name: "Polideportivo La Liga",
+    region: "Ñuble",
     country: "Chile",
     city: "Chillan",
     address: "San Jorge, N-45",
