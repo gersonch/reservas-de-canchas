@@ -1,7 +1,7 @@
 import LocationComponent from "@/components/Location";
 import { IconSymbol } from "@/components/ui/IconSymbol";
-import { complejos } from "@/mockups/complejos";
-import { useRef, useState } from "react";
+//import { complejos } from "@/mockups/complejos";
+import { useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { ComplejoCard } from "./components/ComplejoCard";
 import { SearchModal } from "./components/SearchModal";
@@ -10,8 +10,23 @@ export default function Home() {
   const isLoading = false; // Simula el estado de carga, puedes cambiarlo según tu lógica
   const [isModalOpen, setIsModalOpen] = useState(false);
   const searchModalRef = useRef<{ openModal: () => void }>(null);
+  const [complejos, setComplejos] = useState([]);
 
-  const [numberOfItems, setNumberOfItems] = useState(10);
+  useEffect(() => {
+    const fetchComplejos = async () => {
+      const response = await fetch("http://192.168.2.103:3000/complexes");
+      if (!response.ok) {
+        console.error("Error fetching complejos:");
+        return;
+      }
+      const data = await response.json();
+
+      setComplejos(data);
+    };
+    fetchComplejos();
+  }, []);
+
+  //const [numberOfItems, setNumberOfItems] = useState(10);
 
   function handleSearchPressable() {
     if (searchModalRef.current) {
@@ -46,15 +61,11 @@ export default function Home() {
           setIsModalOpen={setIsModalOpen}
         />
 
-        <ComplejoCard
-          complejo={complejos.map((c) => ({
-            ...c,
-            id: Number(c.id),
-            image_url: c.image_url === null ? "" : c.image_url,
-          }))}
-          isLoading={isLoading}
-        />
-        {/*si el numero de items mostrados por ciudad es mayor a los items de esa ciudad quitar el cargar mas*/}
+        {complejos.length === 0 ? (
+          <Text>No hay complejos cargados</Text>
+        ) : (
+          <ComplejoCard complejo={complejos} isLoading={isLoading} />
+        )}
       </ScrollView>
     </View>
   );

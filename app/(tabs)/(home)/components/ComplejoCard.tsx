@@ -1,4 +1,3 @@
-import { IconSymbol } from "@/components/ui/IconSymbol";
 import { useLocationStore } from "@/store/useLocation";
 import { Link } from "expo-router";
 import { useState } from "react";
@@ -90,7 +89,7 @@ export function ComplejoCard({ complejo, isLoading }: ComplejoCardProps) {
                       </Text>
                       <Text style={styles.cardSub}>{item.country}</Text>
                     </View>
-                    <View style={styles.starsContainer}>
+                    {/* <View style={styles.starsContainer}>
                       <IconSymbol
                         style={{ marginTop: 8 }}
                         size={15}
@@ -100,7 +99,7 @@ export function ComplejoCard({ complejo, isLoading }: ComplejoCardProps) {
                       <Text style={styles.starsText}>
                         {item.stars === null ? "n.n" : item.stars.toFixed(1)}
                       </Text>
-                    </View>
+                    </View> */}
                   </View>
                 </Link>
               );
