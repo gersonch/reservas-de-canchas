@@ -15,16 +15,26 @@ export default function Home() {
   // Obtén los complejos desde el store
   const complejos = useComplexStore((state) => state.complejos);
   const setComplejos = useComplexStore((state) => state.setComplejos);
+  const [ratings, setRatings] = useState([]);
 
   useEffect(() => {
     const fetchComplejos = async () => {
-      const response = await fetchData("complexes"); // Llama a tu función fetch centralizada
-      if (response && response.data) {
-        setComplejos(response.data); // Guarda en zustand
-      } else {
-        console.error("Error fetching complexes data");
+      try {
+        const complexes = await fetchData("complexes");
+        if (!complexes || !complexes.data) {
+          console.error("Error fetching complexes data");
+          return;
+        }
+        setComplejos(complexes.data);
+        // Fetch ratings para todos los complejos
+        const ids = complexes.data.map((c) => c._id).join(",");
+        const ratingsRes = await fetchData(`rating?ids=${ids}`);
+        setRatings(ratingsRes && ratingsRes.data ? ratingsRes.data : []);
+      } catch (error) {
+        console.error("Failed to fetch complejos or ratings:", error);
       }
     };
+
     fetchComplejos();
   }, [setComplejos]);
 
@@ -65,8 +75,9 @@ export default function Home() {
           <Text>No hay complejos cargados</Text>
         ) : (
           <ComplejoCard
-            complejo={complejos.map((c) => ({ ...c, id: Number(c._id) }))}
+            complejo={complejos}
             isLoading={isLoading}
+            ratings={ratings}
           />
         )}
       </ScrollView>

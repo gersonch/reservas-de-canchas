@@ -20,36 +20,28 @@ export function CardDetalles({ item, param }: { item: IComplejo; param: any }) {
 
   const [rating, setRating] = useState<number>(0);
   const [submitting, setSubmitting] = useState(false);
-  const { user, token } = useAuthStore();
-  const [numberOfStars, setNumberOfStars] = useState<number>(0);
-
-  const ratingForComplex = api.get(`${API_URL}/rating/${param}`);
-  ratingForComplex.then((response) => {
-    setNumberOfStars(response.data);
-  });
+  const { user } = useAuthStore();
+  const [numberOfStars, setNumberOfStars] = useState<number | null>(null);
 
   useEffect(() => {
-    const fetchRatingForUser = async () => {
+    const fetchRatingForComplex = async () => {
       try {
-        const response = await api.get(`${API_URL}/rating/${param}/user`);
-        // Verifica si la respuesta tiene el array rating y al menos un elemento
-        if (
-          response.data &&
-          Array.isArray(response.data.rating) &&
-          response.data.rating.length > 0
-        ) {
-          setRating(response.data.rating[0].stars);
-          console.log("Rating for user:", response.data.rating[0].stars);
+        const response = await api.get(`${API_URL}/rating?ids=${param}`);
+        if (Array.isArray(response.data) && response.data.length > 0) {
+          setNumberOfStars(response.data[0].rating);
         } else {
-          setRating(0); // O el valor que quieras por defecto si no hay rating
-          console.log("El usuario no tiene rating para este complejo");
+          setNumberOfStars(null);
         }
       } catch (error) {
-        console.error("Error fetching rating for user:", error);
+        setNumberOfStars(null);
+        console.error("Error fetching rating for complex:", error);
       }
     };
-    fetchRatingForUser();
-  }, [param, token]);
+    fetchRatingForComplex();
+  }, [param]);
+
+  console.log("Rating for complex:", numberOfStars);
+
   console.log(user?.id);
   // Función para enviar el rating al servidor
   const handleSubmitRating = async () => {
@@ -102,7 +94,12 @@ export function CardDetalles({ item, param }: { item: IComplejo; param: any }) {
               justifyContent: "center",
             }}
           >
-            <IconSymbol size={15} name="star" color={"#FFD700"} />
+            <IconSymbol
+              size={15}
+              name="star.fill"
+              color={"#FFD700"}
+              style={{ marginRight: 4 }}
+            />
             <Text style={styles.ratingText}>
               {numberOfStars === null ? "No calificado" : numberOfStars}
             </Text>

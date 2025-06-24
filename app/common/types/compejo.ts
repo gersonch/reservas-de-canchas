@@ -6,5 +6,5 @@ export interface IComplejo {
   city: string;
   address: string;
   image_url: string | null;
-  stars: number;
+  stars: number | null;
 }
