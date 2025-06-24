@@ -133,7 +133,7 @@ export const SearchModal = forwardRef(function SearchModal(
                       key={complejo._id}
                       href={{
                         pathname: "/details/[id]",
-                        params: { _id: complejo._id },
+                        params: { id: complejo._id },
                       }}
                       onPress={closeModal}
                       style={styles.cardItem} // <-- Aplica el estilo aquí
@@ -184,16 +184,20 @@ const styles = StyleSheet.create({
     height: "15%",
     padding: 20,
     borderRadius: 5,
+    color: "black ",
   },
   containerInputCards: {
     flex: 1,
     width: "100%",
+    color: "black",
   },
 
   containerCards: {
     width: "100%",
     height: "85%",
     maxHeight: "95%", // limita la altura del scroll para que no ocupe todo el modal
+
+    color: "black",
 
     // limita altura del scroll para que no ocupe todo el modal
   },

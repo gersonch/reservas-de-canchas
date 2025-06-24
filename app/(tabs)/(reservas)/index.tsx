@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
+
 export default function Reservar() {
   const reservas = [
     {

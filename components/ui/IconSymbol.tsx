@@ -17,6 +17,8 @@ const MAPPING = {
   eye: "visibility",
   magnifyingglass: "search",
   "star.fill": "star",
+  "arrow.backward.circle.fill": "arrow-back",
+  "trophy.fill": "emoji-events",
 } as const;
 
 type IconSymbolName = keyof typeof MAPPING;

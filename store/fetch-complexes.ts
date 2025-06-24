@@ -8,6 +8,8 @@ export function useFetchComplexes() {
     const data = await fetchData({ route: "complexes" });
     if (data) {
       setComplejos(data);
+    } else {
+      console.error("Error fetching complexes data");
     }
   }
 

@@ -57,14 +57,15 @@ export function ComplejoCard({ complejo, isLoading }: ComplejoCardProps) {
           ))
         : dataFilterdByCity
             .map((item, index) => {
-              const sourceImage = item.image_url
-                ? item.image_url
+              const sourceImage = item.image_url?.[0]
+                ? item.image_url?.[0]
                 : imagenReserva;
+
               return (
                 <Link
                   href={{
                     pathname: "/details/[id]",
-                    params: { _id: item._id },
+                    params: { id: item._id },
                   }}
                   key={index}
                   style={styles.card}

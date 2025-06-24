@@ -8,13 +8,13 @@ export default function DetailsPage() {
   const complejos = useComplexStore((state) => state.complejos);
   const params = useLocalSearchParams();
 
-  const { _id } = params;
+  const { id } = params;
 
   if (!complejos || complejos.length === 0) {
     return <Text>Cargando complejo...</Text>;
   }
 
-  const complejoItem = complejos.find((c) => String(c._id) === String(_id));
+  const complejoItem = complejos.find((c) => String(c._id) === String(id));
 
   if (!complejoItem) {
     return <Text>Complejo no encontrado</Text>;
@@ -24,7 +24,7 @@ export default function DetailsPage() {
     <>
       <BackButton />
       <ScrollView>
-        <CardDetalles item={complejoItem} />
+        <CardDetalles item={complejoItem} param={id} />
       </ScrollView>
     </>
   );

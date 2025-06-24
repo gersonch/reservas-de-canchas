@@ -18,9 +18,11 @@ export default function Home() {
 
   useEffect(() => {
     const fetchComplejos = async () => {
-      const data = await fetchData({ route: "complexes" });
-      if (data) {
-        setComplejos(data); // Guarda en zustand
+      const response = await fetchData("complexes"); // Llama a tu función fetch centralizada
+      if (response && response.data) {
+        setComplejos(response.data); // Guarda en zustand
+      } else {
+        console.error("Error fetching complexes data");
       }
     };
     fetchComplejos();
@@ -63,10 +65,7 @@ export default function Home() {
           <Text>No hay complejos cargados</Text>
         ) : (
           <ComplejoCard
-            complejo={complejos.map((c: any) => ({
-              ...c,
-              id: Number(c.id),
-            }))}
+            complejo={complejos.map((c) => ({ ...c, id: Number(c._id) }))}
             isLoading={isLoading}
           />
         )}
