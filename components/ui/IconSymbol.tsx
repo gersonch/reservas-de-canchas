@@ -19,6 +19,8 @@ const MAPPING = {
   "star.fill": "star",
   "arrow.backward.circle.fill": "arrow-back",
   "trophy.fill": "emoji-events",
+  "door.close.fill": "door-sliding",
+  person: "person-outline",
 } as const;
 
 type IconSymbolName = keyof typeof MAPPING;

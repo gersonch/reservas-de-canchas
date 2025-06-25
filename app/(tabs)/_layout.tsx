@@ -47,7 +47,7 @@ export default function TabLayout() {
             ? {
                 title: "Iniciar sesión",
                 tabBarIcon: ({ color }) => (
-                  <IconSymbol size={28} name="person.fill" color={color} />
+                  <IconSymbol size={28} name="person" color={color} />
                 ),
               }
             : {

@@ -12,7 +12,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { IComplejo } from "../common/types/compejo";
+import { IComplejo } from "../../common/types/compejo";
 
 export function CardDetalles({ item, param }: { item: IComplejo; param: any }) {
   const imagenReserva =
@@ -22,6 +22,8 @@ export function CardDetalles({ item, param }: { item: IComplejo; param: any }) {
   const [submitting, setSubmitting] = useState(false);
   const { user } = useAuthStore();
   const [numberOfStars, setNumberOfStars] = useState<number | null>(null);
+
+  const stars = Array.from({ length: 5 }, (_, index) => index + 1);
 
   useEffect(() => {
     const fetchRatingForComplex = async () => {
@@ -40,10 +42,6 @@ export function CardDetalles({ item, param }: { item: IComplejo; param: any }) {
     fetchRatingForComplex();
   }, [param]);
 
-  console.log("Rating for complex:", numberOfStars);
-
-  console.log(user?.id);
-  // Función para enviar el rating al servidor
   const handleSubmitRating = async () => {
     setSubmitting(true);
     try {
@@ -101,7 +99,9 @@ export function CardDetalles({ item, param }: { item: IComplejo; param: any }) {
               style={{ marginRight: 4 }}
             />
             <Text style={styles.ratingText}>
-              {numberOfStars === null ? "No calificado" : numberOfStars}
+              {numberOfStars === null
+                ? "No calificado"
+                : numberOfStars.toFixed(1)}
             </Text>
           </View>
         </View>
@@ -164,7 +164,28 @@ export function CardDetalles({ item, param }: { item: IComplejo; param: any }) {
           </Pressable>
         </View>
 
-        <View style={styles.rating}></View>
+        <View style={styles.rating}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {stars.map((star, index) => {
+              return (
+                <Pressable
+                  key={index}
+                  onPress={() => alert(index + 1)}
+                  style={{ marginRight: 2, display: "flex" }}
+                >
+                  <IconSymbol size={35} name={"star"} color={"#FFD700"} />
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+        <Text style={{ marginTop: 4, marginLeft: 4 }}>¡Califícanos!</Text>
       </View>
     </View>
   );

@@ -1,4 +1,5 @@
 import { API_URL } from "@/constants/api-url";
+import api from "@/lib/api";
 import * as SecureStore from "expo-secure-store";
 import { create } from "zustand";
 
@@ -30,15 +31,15 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (email, password) => {
     set({ loading: true });
     try {
-      const response = await fetch(`${API_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+      const response = await api.post(`${API_URL}/auth/login`, {
+        email,
+        password,
       });
 
-      if (!response.ok) throw new Error("Login failed");
+      if (response.status < 200 || response.status >= 300)
+        throw new Error("Login failed");
 
-      const { token, refreshToken, user } = await response.json();
+      const { token, refreshToken, user } = response.data;
 
       await SecureStore.setItemAsync("token", token);
       await SecureStore.setItemAsync("refreshToken", refreshToken);
@@ -52,8 +53,16 @@ export const useAuthStore = create<AuthState>((set) => ({
         message: "Login successful",
       });
     } catch (error) {
-      set({ loading: false, message: "Login failed" });
-      throw error;
+      set({
+        user: null,
+        token: null,
+        refreshToken: null,
+        loading: false,
+        message: "Login failed",
+      });
+      await SecureStore.deleteItemAsync("token");
+      await SecureStore.deleteItemAsync("refreshToken");
+      await SecureStore.deleteItemAsync("user");
     }
   },
 

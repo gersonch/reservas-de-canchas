@@ -1,5 +1,7 @@
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { useAuthStore } from "@/store/useAuthStore";
+import Profile from "../../profile/Profile";
+
 import { useEffect, useState } from "react";
 import {
   Image,
@@ -18,33 +20,33 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [msg, setMsg] = useState<string>("");
 
-  const { user, loading, login, checkAuth, logout, message } = useAuthStore();
+  const { user, loading, login, message } = useAuthStore();
 
   useEffect(() => {
-    checkAuth();
     if (message) {
       setMsg(message);
     }
-  }, [checkAuth, message]);
+  }, [message]);
 
   async function handleLogin() {
     try {
+      if (!email || !password) {
+        setMsg("Por favor, completa todos los campos");
+        return;
+      }
+      if (!email.includes("@")) {
+        setMsg("Por favor, ingresa un correo electrónico válido");
+        return;
+      }
+      if (password.length < 6) {
+        setMsg("Por favor, ingresa una contraseña válida");
+        return;
+      }
       await login(email, password);
       setEmail("");
-      setMsg("");
       setPassword("");
     } catch {
-      setMsg(message || "Error al iniciar sesión");
-      setEmail("");
-      setPassword("");
-    }
-  }
-
-  async function handleLogout() {
-    try {
-      await logout();
-    } catch (error) {
-      console.log(error);
+      setMsg("Error al iniciar sesión");
     }
   }
 
@@ -58,13 +60,16 @@ export default function Login() {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      {!user ? (
+      {user ? (
+        <Profile />
+      ) : (
         <View style={styles.container}>
           <Text style={styles.title}>Inicia sesión</Text>
           <Text style={styles.message}>{msg}</Text>
 
           <TextInput
             style={styles.input}
+            inputMode="email"
             textContentType="emailAddress"
             autoCapitalize="none"
             placeholder="Ingresa tu correo"
@@ -119,22 +124,6 @@ export default function Login() {
               </Text>
             </View>
           </Pressable>
-        </View>
-      ) : (
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <Pressable onPress={handleLogout}>
-            <Text>Logout</Text>
-          </Pressable>
-          <Pressable onPress={checkAuth} style={styles.button}>
-            <Text>Verificar sesion</Text>
-          </Pressable>
-          <Text>Bienvenido {user?.name}</Text>
         </View>
       )}
     </TouchableWithoutFeedback>

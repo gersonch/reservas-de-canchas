@@ -2,7 +2,7 @@ import { BackButton } from "@/components/BackButton";
 import { useComplexStore } from "@/store/useComplexStore";
 import { useLocalSearchParams } from "expo-router";
 import { ScrollView, Text } from "react-native";
-import { CardDetalles } from "./CardDetalles";
+import { CardDetalles } from "../../components/details/CardDetalles";
 
 export default function DetailsPage() {
   const complejos = useComplexStore((state) => state.complejos);

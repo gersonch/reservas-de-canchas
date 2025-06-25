@@ -4,8 +4,14 @@ import { fetchData } from "@/store/fetch"; // o tu función fetch centralizada
 import { useComplexStore } from "@/store/useComplexStore"; // importa el store
 import { useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { ComplejoCard } from "./components/ComplejoCard";
-import { SearchModal } from "./components/SearchModal";
+import { ComplejoCard } from "../../../components/home/components/ComplejoCard";
+import { SearchModal } from "../../../components/home/components/SearchModal";
+
+// Define or import the Complex type if not already available
+type Complex = {
+  _id: string;
+  // add other fields as needed
+};
 
 export default function Home() {
   const isLoading = false;
@@ -27,7 +33,7 @@ export default function Home() {
         }
         setComplejos(complexes.data);
         // Fetch ratings para todos los complejos
-        const ids = complexes.data.map((c) => c._id).join(",");
+        const ids = (complexes.data as Complex[]).map((c) => c._id).join(",");
         const ratingsRes = await fetchData(`rating?ids=${ids}`);
         setRatings(ratingsRes && ratingsRes.data ? ratingsRes.data : []);
       } catch (error) {
