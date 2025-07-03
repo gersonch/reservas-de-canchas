@@ -2,47 +2,54 @@ import LocationComponent from "@/components/Location";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { fetchData } from "@/store/fetch"; // o tu función fetch centralizada
 import { useComplexStore } from "@/store/useComplexStore"; // importa el store
-import { useEffect, useRef, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { ComplejoCard } from "../../../components/home/components/ComplejoCard";
 import { SearchModal } from "../../../components/home/components/SearchModal";
 
-// Define or import the Complex type if not already available
 type Complex = {
   _id: string;
-  // add other fields as needed
 };
 
 export default function Home() {
   const isLoading = false;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const searchModalRef = useRef<{ openModal: () => void }>(null);
+  const [refresh, setRefresh] = useState(false);
 
   // Obtén los complejos desde el store
   const complejos = useComplexStore((state) => state.complejos);
   const setComplejos = useComplexStore((state) => state.setComplejos);
   const [ratings, setRatings] = useState([]);
 
-  useEffect(() => {
-    const fetchComplejos = async () => {
-      try {
-        const complexes = await fetchData("complexes");
-        if (!complexes || !complexes.data) {
-          console.error("Error fetching complexes data");
-          return;
-        }
-        setComplejos(complexes.data);
-        // Fetch ratings para todos los complejos
-        const ids = (complexes.data as Complex[]).map((c) => c._id).join(",");
-        const ratingsRes = await fetchData(`rating?ids=${ids}`);
-        setRatings(ratingsRes && ratingsRes.data ? ratingsRes.data : []);
-      } catch (error) {
-        console.error("Failed to fetch complejos or ratings:", error);
+  // Move fetchComplejos outside useEffect so it can be reused
+  const fetchComplejos = useCallback(async () => {
+    try {
+      const complexes = await fetchData("complexes");
+      if (!complexes || !complexes.data) {
+        console.error("Error fetching complexes data");
+        return;
       }
-    };
-
-    fetchComplejos();
+      setComplejos(complexes.data);
+      const ids = (complexes.data as Complex[]).map((c) => c._id).join(",");
+      const ratingsRes = await fetchData(`rating?ids=${ids}`);
+      setRatings(ratingsRes && ratingsRes.data ? ratingsRes.data : []);
+    } catch (error) {
+      console.error("Failed to fetch complejos or ratings:", error);
+    }
   }, [setComplejos]);
+
+  useEffect(() => {
+    fetchComplejos();
+  }, [fetchComplejos]);
 
   function handleSearchPressable() {
     if (searchModalRef.current) {
@@ -50,6 +57,14 @@ export default function Home() {
     }
   }
 
+  function handleRefresh() {
+    setRefresh(true);
+
+    fetchComplejos();
+    setTimeout(() => {
+      setRefresh(false);
+    }, 1000); // Simula un delay para la actualización
+  }
   return (
     <View style={styles.container}>
       {/* Cabecera con input */}
@@ -66,27 +81,34 @@ export default function Home() {
       </View>
 
       {/* Contenido scrollable */}
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-      >
-        <SearchModal
-          ref={searchModalRef}
-          isModalOpen={isModalOpen}
-          setIsModalOpen={setIsModalOpen}
-        />
+      <SafeAreaProvider>
+        <SafeAreaView style={{ flex: 1 }}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl refreshing={refresh} onRefresh={handleRefresh} />
+            }
+          >
+            <SearchModal
+              ref={searchModalRef}
+              isModalOpen={isModalOpen}
+              setIsModalOpen={setIsModalOpen}
+            />
 
-        {complejos.length === 0 ? (
-          <Text>No hay complejos cargados</Text>
-        ) : (
-          <ComplejoCard
-            complejo={complejos}
-            isLoading={isLoading}
-            ratings={ratings}
-          />
-        )}
-      </ScrollView>
+            {complejos.length === 0 ? (
+              <Text>No hay complejos cargados</Text>
+            ) : (
+              <ComplejoCard
+                complejo={complejos}
+                isLoading={isLoading}
+                ratings={ratings}
+              />
+            )}
+          </ScrollView>
+        </SafeAreaView>
+      </SafeAreaProvider>
     </View>
   );
 }

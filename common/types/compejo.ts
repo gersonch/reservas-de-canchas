@@ -7,4 +7,16 @@ export interface IComplejo {
   address: string;
   image_url: string | null;
   stars: number | null;
+  facilities?: {
+    bar?: boolean;
+    changingRooms?: boolean;
+    parking?: boolean;
+    restaurant?: boolean;
+    showers?: boolean;
+  };
+  equipment?: {
+    futbol?: boolean;
+    tenis?: boolean;
+    padel?: boolean;
+  };
 }
