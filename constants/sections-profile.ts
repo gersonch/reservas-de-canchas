@@ -12,7 +12,7 @@ export const sections = [
         icon: "heart",
         color: "#E53935",
         label: "Mis favoritos",
-        href: "/favoritos",
+        href: "profile/favourites",
       },
       {
         icon: "credit-card",

@@ -7,6 +7,7 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -19,14 +20,47 @@ import {
   View,
 } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 
 export default function ProfileConfiguration() {
+  const uriIfNoProfileImage =
+    "https://res.cloudinary.com/dsm9c4emg/image/upload/v1751077004/icono-perfil-usuario-estilo-plano-ilustracion-vector-avatar-miembro-sobre-fondo-aislado-concepto-negocio-signo-permiso-humano_157943-15752_ewx5pm.avif";
+  // ------------------- ESTADOS PRINCIPALES -------------------
   const { profile } = useProfileStore();
   const { user } = useAuthStore();
-  // Simulación de datos de perfil, reemplazar por datos reales si es necesario
-  // Estado para la uri local de la imagen seleccionada
+  const [isSubmittingImage, setIsSubmittingImage] = useState(false);
   const [localImageUri, setLocalImageUri] = useState<string | null>(null);
+  const [editingImage, setEditingImage] = useState(false);
+  const [profileData, setProfileData] = useState<IUserProfile>({
+    name: profile?.name || "",
+    email: profile?.email || "",
+    image_url: profile?.image_url || uriIfNoProfileImage,
+    phone: profile?.phone || "",
+    country: profile?.country || "",
+    city: profile?.city || "",
+    address: profile?.address || "",
+  });
+  const [form, setForm] = useState({
+    name: profile?.name,
+    phone: profile?.phone?.toString() || "",
+    country: profile?.country || "",
+    city: profile?.city || "",
+    address: profile?.address || "",
+  });
+  const [passwordForm, setPasswordForm] = useState({
+    current: "",
+    new1: "",
+    new2: "",
+  });
 
+  const [imageUrl, setImageUrl] = useState(
+    profile?.image_url || uriIfNoProfileImage
+  );
+  const [refresh, setRefresh] = useState(false);
+
+  // Eliminado oldImageUrl: ya no es necesario
+
+  // ------------------- HANDLERS -------------------
   const handlePickImage = async () => {
     const permissionResult =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -44,39 +78,8 @@ export default function ProfileConfiguration() {
       setLocalImageUri(result.assets[0].uri); // Guardar la uri local
       setEditingImage(true);
     }
-    console.log("Imagen seleccionada:", result);
   };
 
-  const [profileData, setProfileData] = useState<IUserProfile>({
-    name: profile?.name || "",
-    email: profile?.email || "",
-    image_url:
-      profile?.image_url ||
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRbit7igAlvfCrt2T_8_uh5kzAXgseW_SEfqw&s",
-    phone: profile?.phone || "",
-    country: profile?.country || "",
-    city: profile?.city || "",
-    address: profile?.address || "",
-  });
-  const [editingImage, setEditingImage] = useState(false);
-  const [form, setForm] = useState({
-    name: profile?.name,
-    phone: profile?.phone?.toString() || "",
-    country: profile?.country || "",
-    city: profile?.city || "",
-    address: profile?.address || "",
-  });
-  const [passwordForm, setPasswordForm] = useState({
-    current: "",
-    new1: "",
-    new2: "",
-  });
-  const [imageUrl, setImageUrl] = useState(
-    profile?.image_url ||
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRbit7igAlvfCrt2T_8_uh5kzAXgseW_SEfqw&s"
-  );
-
-  // Handlers para inputs
   const handleChange = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
@@ -84,17 +87,26 @@ export default function ProfileConfiguration() {
     setPasswordForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const showToast = (type: "success" | "error" | "info", message: string) => {
+    Toast.show({
+      type,
+      text1: message,
+    });
+  };
+
   async function handleSubmitData() {
     if (!user?.id) return;
     // Validar si hay cambios
     const phoneValue = form.phone ? Number(form.phone) : undefined;
-    if (
-      phoneValue === profile?.phone &&
-      form.country === profile?.country &&
-      form.city === profile?.city &&
-      form.address === profile?.address
-    ) {
-      alert("No hay cambios en los datos del perfil.");
+    const noChanges =
+      (form.phone?.trim() || "") ===
+        (profileData.phone?.toString().trim() || "") &&
+      (form.country?.trim() || "") === (profileData.country?.trim() || "") &&
+      (form.city?.trim() || "") === (profileData.city?.trim() || "") &&
+      (form.address?.trim() || "") === (profileData.address?.trim() || "");
+
+    if (noChanges) {
+      showToast("error", "Asegurate de cambiar datos.");
       return;
     }
     try {
@@ -112,34 +124,27 @@ export default function ProfileConfiguration() {
           city: form.city,
           address: form.address,
         }));
-        alert("Datos actualizados correctamente.");
+        showToast("success", "Datos actualizados correctamente.");
       } else {
-        alert("Error al actualizar los datos del perfil.");
+        showToast("error", "Error al actualizar perfil");
       }
-    } catch (error) {
-      alert(
-        "Error al actualizar los datos del perfil: " + (error as any)?.message
-      );
+    } catch {
+      showToast("error", "Error al actualizar perfil");
     }
   }
 
-  const uriIfNoProfileImage =
-    "https://res.cloudinary.com/dsm9c4emg/image/upload/v1751077004/icono-perfil-usuario-estilo-plano-ilustracion-vector-avatar-miembro-sobre-fondo-aislado-concepto-negocio-signo-permiso-humano_157943-15752_ewx5pm.avif";
-
   async function handleSubmitImage() {
-    const actualImageUrl = profileData.image_url;
-    if (!actualImageUrl || actualImageUrl !== uriIfNoProfileImage) {
-      alert("No se puede actualizar la imagen de perfil más de una vez.");
-      return;
-    }
+    setIsSubmittingImage(true);
 
     if (!localImageUri) {
-      alert("Primero selecciona una imagen.");
+      showToast("error", "Primero selecciona una imagen.");
+      setIsSubmittingImage(false);
       return;
     }
     try {
       if (!user?.id) {
-        alert("Usuario no encontrado.");
+        showToast("error", "Usuario no encontrado.");
+        setIsSubmittingImage(false);
         return;
       }
 
@@ -156,38 +161,37 @@ export default function ProfileConfiguration() {
           "Content-Type": "multipart/form-data",
         },
       });
-      console.log("Respuesta backend imagen:", response);
       if (response.status === 200 && response.data?.image_url) {
         setProfileData((prev) => ({
           ...prev,
           image_url: response.data.image_url,
         }));
+        // Eliminar la imagen anterior solo si actualImageUrl es válida y no es la default ni la nueva
+        // Eliminación de imagen anterior deshabilitada por solicitud
         setImageUrl(response.data.image_url); // Actualizar la url global
         setLocalImageUri(null); // Limpiar la uri local
-        alert("Imagen de perfil actualizada correctamente.");
+        showToast("success", "Imagen actualizada");
       } else {
-        alert("Error al actualizar la imagen de perfil.\n");
-        console.error("Error al actualizar la imagen:", response);
+        showToast("error", "Error al actualizar la imagen");
       }
       setEditingImage(false);
-    } catch (error) {
-      alert(
-        "Error al actualizar la imagen de perfil: " + (error as any)?.message
-      );
+      setIsSubmittingImage(false);
+    } catch {
+      showToast("error", "Error al actualizar la imagen");
+      setIsSubmittingImage(false);
     }
   }
-  const [refresh, setRefresh] = useState(false);
   const handleRefresh = () => {
     setRefresh(true);
     // Aquí puedes agregar la lógica para refrescar los datos
     setTimeout(() => {
       setRefresh(false);
-    }, 1000); // Simula un delay para la actualización
+    }, 1000);
   };
 
   const getIos = Platform.OS === "ios";
   return (
-    <SafeAreaProvider>
+    <SafeAreaProvider style={{ flex: 1, backgroundColor: "#fff" }}>
       <KeyboardAvoidingView
         behavior={getIos ? "padding" : "height"}
         style={{ flex: 1 }}
@@ -210,9 +214,14 @@ export default function ProfileConfiguration() {
               <Pressable
                 style={styles.editIcon}
                 onPress={editingImage ? handleSubmitImage : handlePickImage}
+                disabled={editingImage && isSubmittingImage}
               >
                 {editingImage ? (
-                  <FontAwesome5 name="check" size={24} color="green" />
+                  isSubmittingImage ? (
+                    <ActivityIndicator size={24} color="#1976D2" />
+                  ) : (
+                    <FontAwesome5 name="check" size={24} color="green" />
+                  )
                 ) : (
                   <FontAwesome5 name="pencil-alt" size={20} color="#1976D2" />
                 )}
@@ -306,6 +315,7 @@ const styles = StyleSheet.create({
   scroll: {
     flexGrow: 1,
     backgroundColor: "#fff",
+    paddingBottom: 24,
   },
   container: {
     flex: 1,

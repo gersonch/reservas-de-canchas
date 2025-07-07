@@ -20,6 +20,8 @@ export default function Profile() {
   const { user, logout } = useAuthStore();
   const [refresh, setRefresh] = useState(false);
   const { profile, setProfile, loadingProfile } = useProfileStore();
+  const uriIfNoProfileImage =
+    "https://res.cloudinary.com/dsm9c4emg/image/upload/v1751077004/icono-perfil-usuario-estilo-plano-ilustracion-vector-avatar-miembro-sobre-fondo-aislado-concepto-negocio-signo-permiso-humano_157943-15752_ewx5pm.avif";
 
   useEffect(() => {
     if (user?.id) {
@@ -53,7 +55,7 @@ export default function Profile() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
       <ScrollView
-        style={{ flex: 1 }}
+        style={{ flex: 1, backgroundColor: "#fff" }}
         refreshControl={
           <RefreshControl refreshing={refresh} onRefresh={handleRefresh} />
         }
@@ -66,7 +68,7 @@ export default function Profile() {
               source={{
                 uri: profile?.image_url
                   ? profile?.image_url
-                  : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRbit7igAlvfCrt2T_8_uh5kzAXgseW_SEfqw&s",
+                  : uriIfNoProfileImage,
               }}
               style={styles.profileImage}
             />

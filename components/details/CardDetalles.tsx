@@ -73,11 +73,9 @@ export function CardDetalles({ item, param }: { item: IComplejo; param: any }) {
   };
 
   const onRefresh = async () => {
-    console.log("Refreshing...");
     setRefreshing(true);
 
     try {
-      console.log("refreshing...");
       const response = await api.get(`${API_URL}/rating?ids=${param}`);
       if (Array.isArray(response.data) && response.data.length > 0) {
         setNumberOfStars(response.data[0].rating);

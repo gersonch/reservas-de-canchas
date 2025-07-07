@@ -1,6 +1,7 @@
 import { API_URL } from "@/constants/api-url";
 import api from "@/lib/api";
 import * as SecureStore from "expo-secure-store";
+import Toast from "react-native-toast-message";
 import { create } from "zustand";
 
 interface User {
@@ -22,6 +23,12 @@ interface AuthState {
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
 }
+const showToast = (type: "success" | "error" | "info", message: string) => {
+  Toast.show({
+    type,
+    text1: message,
+  });
+};
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
@@ -45,6 +52,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       await SecureStore.setItemAsync("token", token);
       await SecureStore.setItemAsync("refreshToken", refreshToken);
       await SecureStore.setItemAsync("user", JSON.stringify(user));
+      showToast("success", "Has iniciado sesión.");
 
       set({
         user,
@@ -64,6 +72,11 @@ export const useAuthStore = create<AuthState>((set) => ({
       await SecureStore.deleteItemAsync("token");
       await SecureStore.deleteItemAsync("refreshToken");
       await SecureStore.deleteItemAsync("user");
+      if (error instanceof Error) {
+        showToast("error", error.message);
+      } else {
+        showToast("error", "Error al iniciar sesión.");
+      }
     }
   },
 
@@ -71,6 +84,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     await SecureStore.deleteItemAsync("token");
     await SecureStore.deleteItemAsync("refreshToken");
     await SecureStore.deleteItemAsync("user");
+    showToast("error", "Has cerrado sesión.");
     set({
       user: null,
       token: null,

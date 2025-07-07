@@ -2,7 +2,7 @@ import { IconSymbol } from "@/components/ui/IconSymbol";
 import { useAuthStore } from "@/store/useAuthStore";
 import Profile from "../../profile/Profile";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Image,
   Keyboard,
@@ -13,40 +13,41 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import Toast from "react-native-toast-message";
 
 export default function Login() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [msg, setMsg] = useState<string>("");
 
-  const { user, loading, login, message } = useAuthStore();
+  const { user, loading, login } = useAuthStore();
 
-  useEffect(() => {
-    if (message) {
-      setMsg(message);
-    }
-  }, [message]);
+  const showToast = (type: "success" | "error" | "info", message: string) => {
+    Toast.show({
+      type,
+      text1: message,
+    });
+  };
 
   async function handleLogin() {
     try {
       if (!email || !password) {
-        setMsg("Por favor, completa todos los campos");
+        showToast("error", "Por favor, completa todos los campos");
         return;
       }
       if (!email.includes("@")) {
-        setMsg("Por favor, ingresa un correo electrónico válido");
+        showToast("error", "Ingresa un correo electrónico válido");
         return;
       }
       if (password.length < 6) {
-        setMsg("Por favor, ingresa una contraseña válida");
+        showToast("error", "Ingresa una contraseña válida");
         return;
       }
       await login(email, password);
       setEmail("");
       setPassword("");
     } catch {
-      setMsg("Error al iniciar sesión");
+      showToast("error", "Error al iniciar sesión");
     }
   }
 
@@ -65,7 +66,6 @@ export default function Login() {
       ) : (
         <View style={styles.container}>
           <Text style={styles.title}>Inicia sesión</Text>
-          <Text style={styles.message}>{msg}</Text>
 
           <TextInput
             style={styles.input}

@@ -5,6 +5,51 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import "react-native-reanimated";
+import Toast, {
+  BaseToast,
+  ErrorToast,
+  InfoToast,
+} from "react-native-toast-message";
+
+const baseToastProps = {
+  minHeight: 90,
+  borderRadius: 16,
+  paddingVertical: 16,
+  backgroundColor: "#fff",
+  contentContainerStyle: { paddingHorizontal: 20, paddingVertical: 16 },
+  text1Style: { color: "#000", fontWeight: "bold", fontSize: 16 },
+  text2Style: { color: "#000", fontSize: 12 },
+};
+
+const toastConfig = {
+  success: (props: any) => (
+    <BaseToast
+      {...props}
+      style={{ ...baseToastProps, borderLeftColor: "#4CAF50" }}
+      contentContainerStyle={baseToastProps.contentContainerStyle}
+      text1Style={baseToastProps.text1Style}
+      text2Style={baseToastProps.text2Style}
+    />
+  ),
+  error: (props: any) => (
+    <ErrorToast
+      {...props}
+      style={{ ...baseToastProps, borderLeftColor: "#F44336" }}
+      contentContainerStyle={baseToastProps.contentContainerStyle}
+      text1Style={baseToastProps.text1Style}
+      text2Style={baseToastProps.text2Style}
+    />
+  ),
+  info: (props: any) => (
+    <InfoToast
+      {...props}
+      style={{ ...baseToastProps, borderLeftColor: "#1976D2" }}
+      contentContainerStyle={baseToastProps.contentContainerStyle}
+      text1Style={baseToastProps.text1Style}
+      text2Style={baseToastProps.text2Style}
+    />
+  ),
+};
 
 export default function RootLayout() {
   const { checkAuth, loading } = useAuthStore();
@@ -23,6 +68,7 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={DefaultTheme}>
       <Stack screenOptions={{ headerShown: false }} />
+      <Toast config={toastConfig} position="bottom" />
       <StatusBar style="auto" />
     </ThemeProvider>
   );

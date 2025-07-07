@@ -1,4 +1,4 @@
-import { IComplejo } from "@/app/common/types/compejo";
+import { IComplejo } from "@/common/types/compejo";
 import { create } from "zustand";
 
 interface ComplexState {
