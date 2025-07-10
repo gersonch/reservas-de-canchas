@@ -12,7 +12,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -31,6 +30,7 @@ export default function ProfileConfiguration() {
   const [isSubmittingImage, setIsSubmittingImage] = useState(false);
   const [localImageUri, setLocalImageUri] = useState<string | null>(null);
   const [editingImage, setEditingImage] = useState(false);
+  const [isSubmittingData, setIsSubmittingData] = useState(false);
   const [profileData, setProfileData] = useState<IUserProfile>({
     name: profile?.name || "",
     email: profile?.email || "",
@@ -56,10 +56,6 @@ export default function ProfileConfiguration() {
   const [imageUrl, setImageUrl] = useState(
     profile?.image_url || uriIfNoProfileImage
   );
-  const [refresh, setRefresh] = useState(false);
-
-  // Eliminado oldImageUrl: ya no es necesario
-
   // ------------------- HANDLERS -------------------
   const handlePickImage = async () => {
     const permissionResult =
@@ -110,6 +106,7 @@ export default function ProfileConfiguration() {
       return;
     }
     try {
+      setIsSubmittingData(true);
       const response = await api.patch(`/users/${user.id}`, {
         phone: phoneValue || undefined,
         country: form.country || "",
@@ -125,11 +122,15 @@ export default function ProfileConfiguration() {
           address: form.address,
         }));
         showToast("success", "Datos actualizados correctamente.");
+        // Fuerza el ActivityIndicator a mostrarse al menos 1 segundo
+        setTimeout(() => setIsSubmittingData(false), 1000);
       } else {
         showToast("error", "Error al actualizar perfil");
+        setIsSubmittingData(false);
       }
     } catch {
       showToast("error", "Error al actualizar perfil");
+      setIsSubmittingData(false);
     }
   }
 
@@ -181,13 +182,6 @@ export default function ProfileConfiguration() {
       setIsSubmittingImage(false);
     }
   }
-  const handleRefresh = () => {
-    setRefresh(true);
-    // Aquí puedes agregar la lógica para refrescar los datos
-    setTimeout(() => {
-      setRefresh(false);
-    }, 1000);
-  };
 
   const getIos = Platform.OS === "ios";
   return (
@@ -196,12 +190,7 @@ export default function ProfileConfiguration() {
         behavior={getIos ? "padding" : "height"}
         style={{ flex: 1 }}
       >
-        <ScrollView
-          contentContainerStyle={styles.scroll}
-          refreshControl={
-            <RefreshControl refreshing={refresh} onRefresh={handleRefresh} />
-          }
-        >
+        <ScrollView contentContainerStyle={styles.scroll}>
           <BackButton />
 
           <View style={styles.container}>
@@ -270,7 +259,13 @@ export default function ProfileConfiguration() {
                 placeholder="Dirección"
               />
               <Pressable style={styles.saveButton} onPress={handleSubmitData}>
-                <Text style={styles.saveButtonText}>Guardar cambios</Text>
+                <Text style={styles.saveButtonText}>
+                  {isSubmittingData ? (
+                    <ActivityIndicator size={24} color="#fff" />
+                  ) : (
+                    "Guardar cambios"
+                  )}
+                </Text>
               </Pressable>
             </View>
             {/* Formulario de contraseña */}

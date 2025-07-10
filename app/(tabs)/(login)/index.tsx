@@ -2,6 +2,7 @@ import { IconSymbol } from "@/components/ui/IconSymbol";
 import { useAuthStore } from "@/store/useAuthStore";
 import Profile from "../../profile/Profile";
 
+import { Link } from "expo-router";
 import { useState } from "react";
 import {
   Image,
@@ -124,6 +125,18 @@ export default function Login() {
               </Text>
             </View>
           </Pressable>
+
+          <Link href="/recover-password" style={{ marginTop: 10 }}>
+            <Text
+              style={{
+                color: "blue",
+                textDecorationLine: "underline",
+                fontSize: 14,
+              }}
+            >
+              ¿Olvidaste tu contraseña?
+            </Text>
+          </Link>
         </View>
       )}
     </TouchableWithoutFeedback>
