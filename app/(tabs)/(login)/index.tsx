@@ -137,6 +137,18 @@ export default function Login() {
               ¿Olvidaste tu contraseña?
             </Text>
           </Link>
+
+          <Link href="/register" style={{ marginTop: 10 }}>
+            <Text
+              style={{
+                color: "blue",
+                textDecorationLine: "underline",
+                fontSize: 14,
+              }}
+            >
+              ¿No tienes cuenta? Regístrate
+            </Text>
+          </Link>
         </View>
       )}
     </TouchableWithoutFeedback>

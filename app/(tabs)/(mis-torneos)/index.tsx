@@ -1,25 +1,7 @@
+import api from "@/lib/api";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-
-const torneosFake = [
-  {
-    id: "1",
-    nombre: "Torneo de Invierno",
-    fecha: "2025-07-10",
-    estado: "En curso",
-    ubicacion: "Chillán",
-    equipos: 8,
-    formato: "Todos contra todos",
-  },
-  {
-    id: "2",
-    nombre: "Copa Ñuble",
-    fecha: "2025-08-05",
-    estado: "Inscripción abierta",
-    ubicacion: "San Carlos",
-    equipos: 12,
-    formato: "Eliminación directa",
-  },
-];
 
 const estadoEmoji = {
   "En curso": "⚽",
@@ -34,48 +16,102 @@ const estadoColor: Record<string, string> = {
 };
 
 export default function MisTorneosScreen() {
+  const [tournaments, setTournaments] = useState([]);
+  const { user } = useAuthStore();
+
+  useEffect(() => {
+    const fetchTournaments = async () => {
+      const response = await api.get(`/tournaments/user/${user?.id}`);
+      if (response.status !== 200) {
+        console.error("Error fetching tournaments:", response.data);
+        return;
+      }
+      setTournaments(response.data);
+    };
+    fetchTournaments();
+  }, [user?.id]);
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>
         <Text>¡Mis torneos!</Text> <Text style={{ color: "#1976D2" }}>🏆</Text>
       </Text>
-      {torneosFake.length === 0 ? (
+      {tournaments.length === 0 ? (
         <Text style={styles.emptyText}>Aún no tienes torneos.</Text>
       ) : (
-        torneosFake.map((torneo) => (
-          <View key={torneo.id} style={styles.card}>
+        tournaments.map((torneo: any) => (
+          <View key={torneo._id} style={styles.card}>
             <View style={styles.headerRow}>
               <Text style={[styles.torneoNombre, { color: "#1976D2" }]}>
-                {torneo.nombre}{" "}
-                {estadoEmoji[torneo.estado as keyof typeof estadoEmoji]}
+                {torneo.name}{" "}
+                {
+                  estadoEmoji[
+                    (torneo.state === "open"
+                      ? "Inscripción abierta"
+                      : torneo.state === "finished"
+                      ? "Finalizado"
+                      : "En curso") as keyof typeof estadoEmoji
+                  ]
+                }
               </Text>
             </View>
             <Text style={styles.detalle}>
-              <Text style={{ color: "#FF9800" }}>📅</Text> Fecha:{" "}
-              <Text style={styles.torneoDatoValor}>{torneo.fecha}</Text>
+              <Text style={{ color: "#FF9800" }}>📅</Text> Fecha inicio:{" "}
+              <Text style={styles.torneoDatoValor}>
+                {torneo.startDate
+                  ? new Date(torneo.startDate).toLocaleDateString()
+                  : "-"}
+              </Text>
             </Text>
             <Text style={styles.detalle}>
-              <Text style={{ color: "#1976D2" }}>📍</Text> Ubicación:{" "}
-              <Text style={styles.torneoDatoValor}>{torneo.ubicacion}</Text>
+              <Text style={{ color: "#FF9800" }}>📅</Text> Fecha término:{" "}
+              <Text style={styles.torneoDatoValor}>
+                {torneo.endDate
+                  ? new Date(torneo.endDate).toLocaleDateString()
+                  : "-"}
+              </Text>
+            </Text>
+            <Text style={styles.detalle}>
+              <Text style={{ color: "#1976D2" }}>🏟️</Text> Categoría:{" "}
+              <Text style={styles.torneoDatoValor}>{torneo.category}</Text>
             </Text>
             <Text style={styles.detalle}>
               <Text style={{ color: "#4CAF50" }}>👥</Text> Equipos:{" "}
-              <Text style={styles.torneoDatoValor}>{torneo.equipos}</Text>
+              <Text style={styles.torneoDatoValor}>
+                {Array.isArray(torneo.teams) ? torneo.teams.length : "-"}
+              </Text>
             </Text>
             <Text style={styles.detalle}>
-              <Text style={{ color: "#f44336" }}>🎲</Text> Formato:{" "}
-              <Text style={styles.torneoDatoValor}>{torneo.formato}</Text>
+              <Text style={{ color: "#f44336" }}>🎲</Text> Deporte:{" "}
+              <Text style={styles.torneoDatoValor}>{torneo.sport}</Text>
             </Text>
             <Text
               style={[
                 styles.estado,
-                { backgroundColor: estadoColor[torneo.estado] || "#1976D2" },
+                {
+                  backgroundColor:
+                    estadoColor[
+                      (torneo.state === "open"
+                        ? "Inscripción abierta"
+                        : torneo.state === "finished"
+                        ? "Finalizado"
+                        : "En curso") as keyof typeof estadoColor
+                    ] || "#1976D2",
+                },
               ]}
             >
-              {torneo.estado.toUpperCase()}
+              {torneo.state === "open"
+                ? "INSCRIPCIÓN ABIERTA"
+                : torneo.state === "finished"
+                ? "FINALIZADO"
+                : "EN CURSO"}
             </Text>
           </View>
         ))
+      )}
+      {tournaments.length > 0 && (
+        <Text style={styles.emptyText}>
+          {tournaments.length} torneos encontrados.
+        </Text>
       )}
     </ScrollView>
   );
