@@ -6,4 +6,5 @@ export interface IUserProfile {
   image_url: string;
   name: string;
   phone: string | null;
+  rut: string;
 }

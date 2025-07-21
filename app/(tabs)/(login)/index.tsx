@@ -5,6 +5,7 @@ import Profile from "../../profile/Profile";
 import { Link } from "expo-router";
 import { useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   Keyboard,
   Pressable,
@@ -103,7 +104,9 @@ export default function Login() {
             </Pressable>
           </View>
           <Pressable style={styles.button} onPress={handleLogin}>
-            <Text style={styles.buttonText}>Iniciar sesión</Text>
+            <Text style={styles.buttonText}>
+              {loading ? <ActivityIndicator color="#fff" /> : "Iniciar sesión"}
+            </Text>
           </Pressable>
 
           <Pressable style={styles.googleButton} onPress={() => {}}>
@@ -126,29 +129,36 @@ export default function Login() {
             </View>
           </Pressable>
 
-          <Link href="/recover-password" style={{ marginTop: 10 }}>
+          <Link
+            href="/recover-password"
+            style={{ marginTop: 15, fontSize: 15 }}
+          >
             <Text
               style={{
                 color: "blue",
                 textDecorationLine: "underline",
-                fontSize: 14,
+                fontSize: 15,
+                fontWeight: "bold",
               }}
             >
               ¿Olvidaste tu contraseña?
             </Text>
           </Link>
 
-          <Link href="/register" style={{ marginTop: 10 }}>
-            <Text
+          <Text style={{ marginTop: 15, fontSize: 15 }}>
+            ¿Aun no te has registrado?{" "}
+            <Link
+              href="/register"
               style={{
                 color: "blue",
                 textDecorationLine: "underline",
-                fontSize: 14,
+                fontSize: 15,
+                fontWeight: "bold",
               }}
             >
-              ¿No tienes cuenta? Regístrate
-            </Text>
-          </Link>
+              <Text>Regístrate aquí</Text>
+            </Link>
+          </Text>
         </View>
       )}
     </TouchableWithoutFeedback>

@@ -61,7 +61,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         loading: false,
         message: "Login successful",
       });
-    } catch (error) {
+    } catch (error: any) {
       set({
         user: null,
         token: null,
@@ -72,11 +72,10 @@ export const useAuthStore = create<AuthState>((set) => ({
       await SecureStore.deleteItemAsync("token");
       await SecureStore.deleteItemAsync("refreshToken");
       await SecureStore.deleteItemAsync("user");
-      if (error instanceof Error) {
-        showToast("error", error.message);
-      } else {
-        showToast("error", "Error al iniciar sesión.");
-      }
+      showToast(
+        "error",
+        error.response?.data?.message || "Error al iniciar sesión"
+      );
     }
   },
 
@@ -84,7 +83,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     await SecureStore.deleteItemAsync("token");
     await SecureStore.deleteItemAsync("refreshToken");
     await SecureStore.deleteItemAsync("user");
-    showToast("error", "Has cerrado sesión.");
+    showToast("success", "Has cerrado sesión.");
     set({
       user: null,
       token: null,

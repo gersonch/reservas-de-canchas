@@ -4,12 +4,15 @@ import api from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useProfileStore } from "@/store/useProfileStore";
 import { FontAwesome5 } from "@expo/vector-icons";
+import { formatRut, RutFormat } from "@fdograph/rut-utilities";
 import * as ImagePicker from "expo-image-picker";
+import { Redirect } from "expo-router";
 import { useState } from "react";
 import {
   ActivityIndicator,
   Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -18,15 +21,17 @@ import {
   TextInput,
   View,
 } from "react-native";
+
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
-
 export default function ProfileConfiguration() {
+  const [redirectHome, setRedirectHome] = useState(false);
   const uriIfNoProfileImage =
     "https://res.cloudinary.com/dsm9c4emg/image/upload/v1751077004/icono-perfil-usuario-estilo-plano-ilustracion-vector-avatar-miembro-sobre-fondo-aislado-concepto-negocio-signo-permiso-humano_157943-15752_ewx5pm.avif";
   // ------------------- ESTADOS PRINCIPALES -------------------
   const { profile } = useProfileStore();
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
+
   const [isSubmittingImage, setIsSubmittingImage] = useState(false);
   const [localImageUri, setLocalImageUri] = useState<string | null>(null);
   const [editingImage, setEditingImage] = useState(false);
@@ -39,6 +44,7 @@ export default function ProfileConfiguration() {
     country: profile?.country || "",
     city: profile?.city || "",
     address: profile?.address || "",
+    rut: profile?.rut || "",
   });
   const [form, setForm] = useState({
     name: profile?.name,
@@ -46,6 +52,7 @@ export default function ProfileConfiguration() {
     country: profile?.country || "",
     city: profile?.city || "",
     address: profile?.address || "",
+    rut: profile?.rut || "",
   });
   const [passwordForm, setPasswordForm] = useState({
     current: "",
@@ -56,6 +63,10 @@ export default function ProfileConfiguration() {
   const [imageUrl, setImageUrl] = useState(
     profile?.image_url || uriIfNoProfileImage
   );
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmationText, setDeleteConfirmationText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // ------------------- HANDLERS -------------------
   const handlePickImage = async () => {
     const permissionResult =
@@ -183,7 +194,41 @@ export default function ProfileConfiguration() {
     }
   }
 
+  const handleEliminateAccount = () => {
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteAccount = async () => {
+    setShowDeleteModal(false);
+    if (deleteConfirmationText !== profileData.name) {
+      showToast("error", "El texto de confirmación no coincide.");
+      setDeleteConfirmationText("");
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      const response = await api.delete(`users/${user?.id}`, {
+        data: { imageUrl: imageUrl },
+      });
+      if (response.status !== 200) {
+        showToast("error", "Error al eliminar la cuenta");
+        return;
+      }
+      showToast("success", "Cuenta eliminada");
+      logout();
+      setRedirectHome(true);
+    } catch {
+      showToast("error", "Error al eliminar la cuenta");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const getIos = Platform.OS === "ios";
+  if (redirectHome) {
+    return <Redirect href="/" />;
+  }
   return (
     <SafeAreaProvider style={{ flex: 1, backgroundColor: "#fff" }}>
       <KeyboardAvoidingView
@@ -258,6 +303,18 @@ export default function ProfileConfiguration() {
                 onChangeText={(v) => handleChange("address", v)}
                 placeholder="Dirección"
               />
+              <Text style={styles.label}>Rut</Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  { color: "rgba(0,0,0,0.5)", backgroundColor: "#f1f1f1" },
+                ]}
+                value={formatRut(form.rut, RutFormat.DOTS_DASH)}
+                onChangeText={(v) => handleChange("rut", v)}
+                placeholder="Ej: 12345678K"
+                autoCapitalize="characters"
+                editable={false}
+              />
               <Pressable style={styles.saveButton} onPress={handleSubmitData}>
                 <Text style={styles.saveButtonText}>
                   {isSubmittingData ? (
@@ -298,6 +355,146 @@ export default function ProfileConfiguration() {
               <Pressable style={styles.saveButton} onPress={() => {}}>
                 <Text style={styles.saveButtonText}>Guardar cambios</Text>
               </Pressable>
+            </View>
+            <View>
+              <Pressable onPress={handleEliminateAccount}>
+                <Text style={{ color: "red", fontWeight: "bold" }}>
+                  Eliminar cuenta
+                </Text>
+              </Pressable>
+              <Modal
+                visible={showDeleteModal}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setShowDeleteModal(false)}
+              >
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: "rgba(0,0,0,0.4)",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <View
+                    style={{
+                      backgroundColor: "#fff",
+                      borderRadius: 12,
+                      padding: 28,
+                      width: 320,
+                      alignItems: "center",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontWeight: "bold",
+                        fontSize: 18,
+                        marginBottom: 12,
+                        color: "red",
+                        textAlign: "center",
+                      }}
+                    >
+                      ¿Estás seguro de que deseas eliminar tu cuenta?
+                    </Text>
+                    <Text
+                      style={{
+                        color: "#444",
+                        fontSize: 15,
+                        marginBottom: 24,
+                        textAlign: "center",
+                      }}
+                    >
+                      Esta acción es irreversible y eliminará todos tus datos.
+                    </Text>
+
+                    <Text
+                      style={{
+                        textAlign: "center",
+                        width: "100%",
+                        marginBottom: 12,
+                        backgroundColor: "#FFF8E1", // amarillo suave
+                        paddingVertical: 10,
+                        paddingHorizontal: 14,
+                        borderRadius: 8,
+                        color: "#333", // gris oscuro para mejor contraste
+                        fontWeight: "bold",
+                        fontSize: 15,
+                        borderWidth: 1,
+                        borderColor: "#FFD54F", // borde amarillo
+                      }}
+                    >
+                      Escribe{" "}
+                      <Text style={{ fontWeight: "bold", color: "#D32F2F" }}>
+                        &quot;{profileData?.name}&quot;
+                      </Text>{" "}
+                      para confirmar la eliminación.
+                    </Text>
+
+                    <TextInput
+                      style={[
+                        styles.input,
+                        { marginBottom: 24, width: "100%", maxWidth: 300 },
+                      ]}
+                      value={deleteConfirmationText}
+                      placeholder={`Escribe exactamente: "${profileData.name}"`}
+                      onChangeText={setDeleteConfirmationText}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      textAlign="center"
+                      returnKeyType="done"
+                    />
+                    <View style={{ flexDirection: "row", gap: 16 }}>
+                      <Pressable
+                        style={{
+                          backgroundColor: "#e0e0e0",
+                          borderRadius: 8,
+                          paddingVertical: 10,
+                          paddingHorizontal: 18,
+                          marginRight: 8,
+                        }}
+                        onPress={() => setShowDeleteModal(false)}
+                      >
+                        <Text style={{ color: "#1976D2", fontWeight: "bold" }}>
+                          Cancelar
+                        </Text>
+                      </Pressable>
+                      <Pressable
+                        style={
+                          deleteConfirmationText !== ""
+                            ? {
+                                backgroundColor: "red",
+                                borderRadius: 8,
+                                paddingVertical: 10,
+                                paddingHorizontal: 18,
+                              }
+                            : {
+                                backgroundColor: "#e0e0e0",
+                                borderRadius: 8,
+                                paddingVertical: 10,
+                                paddingHorizontal: 18,
+                              }
+                        }
+                        onPress={confirmDeleteAccount}
+                        disabled={deleteConfirmationText === ""}
+                      >
+                        <Text
+                          style={
+                            deleteConfirmationText !== ""
+                              ? { color: "#fff", fontWeight: "bold" }
+                              : { color: "#ccc", fontWeight: "bold" }
+                          }
+                        >
+                          {isDeleting ? (
+                            <ActivityIndicator color="#fff" />
+                          ) : (
+                            "Eliminar"
+                          )}
+                        </Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                </View>
+              </Modal>
             </View>
           </View>
         </ScrollView>

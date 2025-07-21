@@ -1,0 +1,17 @@
+{
+  "cli": {
+    "version": ">= 3.0.0"
+  },
+  "build": {
+    "preview": {
+      "developmentClient": true,
+      "distribution": "internal"
+    }
+  },
+  "submit": {},
+  "update": {
+    "preview": {
+      "branch": "preview"
+    }
+  }
+}

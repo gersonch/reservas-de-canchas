@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/BackButton";
 import { Text, View } from "react-native";
 
 export default function RecoverPasswordScreen() {
@@ -10,6 +11,7 @@ export default function RecoverPasswordScreen() {
         backgroundColor: "#f0f0f0",
       }}
     >
+      <BackButton />
       <Text>Recuperar Contraseña</Text>
     </View>
   );

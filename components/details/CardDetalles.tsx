@@ -67,13 +67,18 @@ export function CardDetalles({ item, param }: { item: IComplejo; param: any }) {
       });
 
       if (response.status !== 201) {
-        console.log(response.status);
         showToast("error", "Error al enviar calificación");
         return;
       }
 
       showToast("success", `Calificación enviada: ${number}`);
     } catch (error: object | any) {
+      const errorMessage = error.response?.data?.message;
+      if (errorMessage === "You have already rated this complex.") {
+        showToast("error", "Ya has calificado este complejo.");
+        return;
+      }
+
       showToast(
         "error",
         `${error.response?.data?.message || "Error al enviar calificación"}`
