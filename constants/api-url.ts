@@ -1,1 +1,3 @@
-export const API_URL = "http://172.20.10.6:3000";
+import { API_URL as CONFIG_API_URL } from "./config";
+
+export const API_URL = CONFIG_API_URL;

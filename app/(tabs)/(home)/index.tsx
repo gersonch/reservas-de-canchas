@@ -34,16 +34,26 @@ export default function Home() {
   const fetchComplejos = useCallback(async () => {
     try {
       const complexes = await fetchData("complexes");
-      if (!complexes || !complexes.data) {
-        console.error("Error fetching complexes data");
-        return;
+      if (
+        complexes &&
+        complexes.data &&
+        Array.isArray(complexes.data) &&
+        complexes.data.length > 0
+      ) {
+        setComplejos(complexes.data);
+        const ids = (complexes.data as Complex[]).map((c) => c._id).join(",");
+        const ratingsRes = await fetchData(`rating?ids=${ids}`);
+        setRatings(ratingsRes && ratingsRes.data ? ratingsRes.data : []);
+      } else {
+        console.warn("No complexes data available");
+        setComplejos([]);
+        setRatings([]);
       }
-      setComplejos(complexes.data);
-      const ids = (complexes.data as Complex[]).map((c) => c._id).join(",");
-      const ratingsRes = await fetchData(`rating?ids=${ids}`);
-      setRatings(ratingsRes && ratingsRes.data ? ratingsRes.data : []);
     } catch (error) {
-      console.error("Failed to fetch complejos or ratings:", error);
+      console.warn("Failed to fetch complejos or ratings:", error);
+      // Asegurar que los estados tengan valores por defecto
+      setComplejos([]);
+      setRatings([]);
     }
   }, [setComplejos]);
 
