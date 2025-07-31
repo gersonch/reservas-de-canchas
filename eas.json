@@ -4,8 +4,18 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
-      }
+      },
+      "autoIncrement": true
+    },
+    "production": {
+      "android": {
+        "buildType": "apk"
+      },
+      "autoIncrement": true
     }
+  },
+  "submit": {
+    "production": {}
   },
   "cli": {
     "version": ">= 3.0.0"
