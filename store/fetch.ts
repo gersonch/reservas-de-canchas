@@ -1,4 +1,5 @@
 import { API_URL } from "@/constants/api-url";
+import { DEBUG } from "@/constants/config";
 import api from "@/lib/api";
 
 export const fetchData = async (route: string) => {
@@ -10,7 +11,10 @@ export const fetchData = async (route: string) => {
     const data = await response;
     return data;
   } catch (error) {
-    console.error("Failed to fetch complejos:", error);
-    return null;
+    if (DEBUG) {
+      console.warn("Failed to fetch data from route:", route, error);
+    }
+    // Retornar estructura vacía en lugar de null para evitar crashes
+    return { data: [] };
   }
 };

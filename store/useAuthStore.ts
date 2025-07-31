@@ -62,6 +62,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         message: "Login successful",
       });
     } catch (error) {
+      console.warn("Login error:", error);
       set({
         user: null,
         token: null,

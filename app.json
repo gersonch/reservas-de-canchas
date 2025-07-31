@@ -17,7 +17,13 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
+<<<<<<< HEAD
       "package": "com.anonymous.hola"
+=======
+      "package": "com.negors.hola",
+      "usesCleartextTraffic": true,
+      "permissions": ["INTERNET", "ACCESS_NETWORK_STATE"]
+>>>>>>> e33409887d3f5c645b6f757470a8ad608d141474
     },
     "web": {
       "bundler": "metro",
@@ -39,6 +45,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "93c8e793-497f-49a0-a3c1-510cad5e0e31"
+      }
     }
   }
 }
