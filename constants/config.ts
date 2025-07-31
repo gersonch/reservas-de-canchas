@@ -14,21 +14,21 @@ const getConfig = (): Config => {
   if (isDev && !isExpo) {
     // Desarrollo local
     return {
-      API_URL: "http://172.20.10.6:3000",
+      API_URL: "https://my-court-api.onrender.com",
       DEBUG: true,
       APP_ENV: "development",
     };
   } else if (isExpo || Constants.executionEnvironment === "standalone") {
     // Aplicación empaquetada (APK/IPA)
     return {
-      API_URL: "https://tu-api-de-produccion.com", // Cambia esta URL por tu API real
+      API_URL: "https://my-court-api.onrender.com", // Cambia esta URL por tu API real
       DEBUG: false,
       APP_ENV: "production",
     };
   } else {
     // Staging o preview
     return {
-      API_URL: "https://tu-api-de-staging.com", // Cambia esta URL por tu API de staging
+      API_URL: "https://my-court-api.onrender.com", // Cambia esta URL por tu API de staging
       DEBUG: true,
       APP_ENV: "staging",
     };
