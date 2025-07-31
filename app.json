@@ -17,13 +17,8 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-<<<<<<< HEAD
-      "package": "com.anonymous.hola"
-=======
       "package": "com.negors.hola",
-      "usesCleartextTraffic": true,
       "permissions": ["INTERNET", "ACCESS_NETWORK_STATE"]
->>>>>>> e33409887d3f5c645b6f757470a8ad608d141474
     },
     "web": {
       "bundler": "metro",
