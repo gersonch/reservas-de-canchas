@@ -22,6 +22,7 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
+  loginGoogle: (accessToken: string) => Promise<void>;
 }
 const showToast = (type: "success" | "error" | "info", message: string) => {
   Toast.show({
@@ -78,6 +79,43 @@ export const useAuthStore = create<AuthState>((set) => ({
       } else {
         showToast("error", "Error al iniciar sesión.");
       }
+    }
+  },
+
+  loginGoogle: async (accessToken?: string) => {
+    set({ loading: true });
+    try {
+      const response = await api.get(`${API_URL}/auth/google`, {
+        params: { accessToken },
+      });
+
+      const { token, refreshToken, user } = response.data;
+
+      await SecureStore.setItemAsync("token", token);
+      await SecureStore.setItemAsync("refreshToken", refreshToken);
+      await SecureStore.setItemAsync("user", JSON.stringify(user));
+      showToast("success", "Has iniciado sesión con Google.");
+
+      set({
+        user,
+        token,
+        refreshToken,
+        loading: false,
+        message: "Login successful",
+      });
+    } catch (error) {
+      set({
+        user: null,
+        token: null,
+        refreshToken: null,
+        loading: false,
+        message: "Login failed",
+      });
+
+      await SecureStore.deleteItemAsync("token");
+      await SecureStore.deleteItemAsync("refreshToken");
+      await SecureStore.deleteItemAsync("user");
+      console.warn("Google login error:", error);
     }
   },
 

@@ -14,7 +14,7 @@ const getConfig = (): Config => {
   if (isDev && !isExpo) {
     // Desarrollo local
     return {
-      API_URL: "https://my-court-api.onrender.com",
+      API_URL: "http://localhost:3000", // Cambia esta URL por tu API local
       DEBUG: true,
       APP_ENV: "development",
     };
