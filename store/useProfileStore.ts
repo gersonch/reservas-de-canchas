@@ -6,6 +6,7 @@ interface ProfileState {
   profile: IUserProfile | null;
   loadingProfile: boolean;
   setProfile: (userId: string) => void;
+  checkProfile: () => void;
 }
 
 export const useProfileStore = create<ProfileState>((set) => ({
@@ -23,5 +24,9 @@ export const useProfileStore = create<ProfileState>((set) => ({
       set({ loadingProfile: false });
       throw new Error("Error al obtener el perfil");
     }
+  },
+
+  checkProfile: () => {
+    set({ profile: null, loadingProfile: false });
   },
 }));

@@ -3,13 +3,15 @@ import { AnimatedIcon } from "@/components/ui/AnimatedIcon";
 import { API_URL } from "@/constants/config";
 import api from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useProfileStore } from "@/store/useProfileStore";
 import {
   Field,
   FieldsListProps,
   Reservation,
 } from "@/types/reservations.interfaces";
 import React, { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import Toast from "react-native-toast-message";
 
 const daysMap = [
   "Domingo",
@@ -56,6 +58,14 @@ export function FieldsList({
   const [expandedField, setExpandedField] = useState<string | null>(null);
   const [reservations, setReservations] =
     useState<Reservation[]>(propReservations);
+
+  // Estados para el modal de confirmación
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [pendingReservation, setPendingReservation] = useState<{
+    slot: string;
+    selectedDate: Date;
+    field: Field;
+  } | null>(null);
 
   // Función para verificar si un slot está reservado
   const isSlotReserved = (
@@ -107,7 +117,55 @@ export function FieldsList({
     );
     return availability;
   };
+  const showToast = (type: "success" | "error" | "info", message: string) => {
+    Toast.show({
+      type,
+      text1: message,
+    });
+  };
 
+  const handleReservation = async (
+    slot: string,
+    selectedDate: Date,
+    field: Field
+  ) => {
+    const [hour] = slot.split(":");
+    const selectedDateObj = new Date(selectedDate);
+    selectedDateObj.setHours(parseInt(hour), 0, 0, 0);
+
+    // Formato: "YYYY-MM-DDTHH:mm"
+    const year = selectedDateObj.getFullYear();
+    const month = String(selectedDateObj.getMonth() + 1).padStart(2, "0");
+    const day = String(selectedDateObj.getDate()).padStart(2, "0");
+    const hourStr = String(selectedDateObj.getHours()).padStart(2, "0");
+    const startTime = `${year}-${month}-${day}T${hourStr}:00`;
+    console.log(startTime);
+
+    const reservationData = {
+      fieldId: field._id,
+      userId: user?.id,
+      startTime: startTime,
+      complexId: field.complexId,
+      price: 12000,
+      duration: "01:00",
+    };
+    console.log(reservationData);
+
+    try {
+      const response = await api.post(
+        `${API_URL}/reservations`,
+        reservationData
+      );
+      showToast("success", "Reserva exitosa");
+      console.log("Reserva exitosa:", response.data);
+    } catch (error) {
+      console.error("Error al reservar:", error);
+      showToast("error", "Error al reservar");
+    }
+  };
+
+  const { profile } = useProfileStore();
+  console.log(profile?.rut);
   return (
     <View style={{ marginBottom: 20 }}>
       {/* Selector de días */}
@@ -279,10 +337,28 @@ export function FieldsList({
                             <Pressable
                               onPress={
                                 isReserved
-                                  ? undefined // No acción si está reservado
-                                  : user
-                                  ? () => alert(`Reservar ${slot}`)
-                                  : () => alert("Inicia sesión para reservar")
+                                  ? undefined
+                                  : user && profile && profile.rut !== undefined
+                                  ? () => {
+                                      setPendingReservation({
+                                        slot,
+                                        selectedDate,
+                                        field,
+                                      });
+                                      setShowConfirmModal(true);
+                                    }
+                                  : () => {
+                                      if (
+                                        profile?.rut === undefined ||
+                                        profile.rut === "" ||
+                                        profile.rut === null
+                                      ) {
+                                        alert(
+                                          "Completa tu perfil para reservar"
+                                        );
+                                      } else
+                                        alert("Inicia sesión para reservar");
+                                    }
                               }
                               key={idx}
                               disabled={isReserved}
@@ -351,6 +427,126 @@ export function FieldsList({
           Selecciona un día para ver las canchas disponibles
         </Text>
       )}
+
+      {/* Modal de confirmación de reserva */}
+      <Modal
+        visible={showConfirmModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowConfirmModal(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(0,0,0,0.5)",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "white",
+              padding: 24,
+              borderRadius: 16,
+              width: "85%",
+              maxWidth: 320,
+              alignItems: "center",
+              shadowColor: "#000",
+              shadowOffset: {
+                width: 0,
+                height: 2,
+              },
+              shadowOpacity: 0.25,
+              shadowRadius: 4,
+              elevation: 5,
+            }}
+          >
+            <Text
+              style={{
+                fontWeight: "700",
+                fontSize: 18,
+                marginBottom: 8,
+                color: "#333",
+              }}
+            >
+              ¿Confirmar reserva?
+            </Text>
+            {pendingReservation && (
+              <Text
+                style={{
+                  fontSize: 14,
+                  marginBottom: 18,
+                  textAlign: "center",
+                  color: "#666",
+                }}
+              >
+                {pendingReservation.field.name} -{" "}
+                {Number(pendingReservation.slot.split(":")[0]) > 9
+                  ? pendingReservation.slot
+                  : `0${pendingReservation.slot}`}
+              </Text>
+            )}
+            <Text
+              style={{
+                fontSize: 15,
+                marginBottom: 24,
+                textAlign: "center",
+                color: "#555",
+              }}
+            >
+              ¿Estás seguro que deseas reservar este horario? {"\n"} Para
+              deshacer esta acción tienes hasta{" "}
+              <Text style={{ fontWeight: "bold", color: "red" }}>6 horas</Text>{" "}
+              antes de la hora de inicio.
+            </Text>
+            <View style={{ flexDirection: "row", gap: 16 }}>
+              <Pressable
+                style={{
+                  backgroundColor: "#28a745",
+                  paddingVertical: 12,
+                  paddingHorizontal: 24,
+                  borderRadius: 8,
+                  minWidth: 100,
+                  alignItems: "center",
+                }}
+                onPress={async () => {
+                  if (pendingReservation) {
+                    await handleReservation(
+                      pendingReservation.slot,
+                      pendingReservation.selectedDate,
+                      pendingReservation.field
+                    );
+                  }
+                  setShowConfirmModal(false);
+                  setPendingReservation(null);
+                }}
+              >
+                <Text style={{ color: "white", fontWeight: "600" }}>
+                  Confirmar
+                </Text>
+              </Pressable>
+              <Pressable
+                style={{
+                  backgroundColor: "#6c757d",
+                  paddingVertical: 12,
+                  paddingHorizontal: 24,
+                  borderRadius: 8,
+                  minWidth: 100,
+                  alignItems: "center",
+                }}
+                onPress={() => {
+                  setShowConfirmModal(false);
+                  setPendingReservation(null);
+                }}
+              >
+                <Text style={{ color: "white", fontWeight: "600" }}>
+                  Cancelar
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }

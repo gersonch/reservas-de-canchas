@@ -3,6 +3,7 @@ import api from "@/lib/api";
 import * as SecureStore from "expo-secure-store";
 import Toast from "react-native-toast-message";
 import { create } from "zustand";
+import { useProfileStore } from "./useProfileStore";
 
 interface User {
   id: string;
@@ -11,6 +12,7 @@ interface User {
   password: string;
   role: string;
   image_url?: string;
+  rut?: string;
 }
 
 interface AuthState {
@@ -123,6 +125,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     await SecureStore.deleteItemAsync("token");
     await SecureStore.deleteItemAsync("refreshToken");
     await SecureStore.deleteItemAsync("user");
+    // Limpiar el perfil en memoria
+    useProfileStore.getState().checkProfile();
     showToast("error", "Has cerrado sesión.");
     set({
       user: null,
