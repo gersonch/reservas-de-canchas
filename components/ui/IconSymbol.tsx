@@ -21,6 +21,7 @@ const MAPPING = {
   "trophy.fill": "emoji-events",
   "door.close.fill": "door-sliding",
   person: "person-outline",
+  plus: "add",
 } as const;
 
 type IconSymbolName = keyof typeof MAPPING;

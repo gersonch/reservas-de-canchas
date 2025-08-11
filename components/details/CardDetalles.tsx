@@ -28,18 +28,19 @@ export function CardDetalles({ item, param }: { item: IComplejo; param: any }) {
 
   const [rating, setRating] = useState<number>(0);
   const [fields, setFields] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<"info" | "reservas">("info");
 
   const { user } = useAuthStore();
   const [numberOfStars, setNumberOfStars] = useState<number | null>(null);
 
   const stars = Array.from({ length: 5 }, (_, index) => index + 1);
-  const fetchFields = async () => {
-    const response = await api.get(`${API_URL}/fields/complex/${param}`);
-    setFields(response.data);
-  };
 
   useEffect(() => {
-    fetchFields();
+    const fetchFields = async () => {
+      const response = await api.get(`${API_URL}/fields/complex/${param}`);
+      setFields(response.data);
+    };
+
     const fetchRatingForComplex = async () => {
       try {
         const response = await api.get(`${API_URL}/rating?ids=${param}`);
@@ -53,6 +54,8 @@ export function CardDetalles({ item, param }: { item: IComplejo; param: any }) {
         console.error("Error fetching rating for complex:", error);
       }
     };
+
+    fetchFields();
     fetchRatingForComplex();
   }, [param]);
 
@@ -146,132 +149,175 @@ export function CardDetalles({ item, param }: { item: IComplejo; param: any }) {
             </Text>
           </Pressable>
 
-          {/* Sección de Reservas */}
-          <FieldsList fields={fields} />
-
-          {/* Instalaciones y equipamiento */}
-          <>
-            <View style={{ marginTop: 16 }}>
-              <Text
-                style={{
-                  fontWeight: "bold",
-                  fontSize: 16,
-                  marginBottom: 6,
-                }}
-              >
-                Instalaciones:
-              </Text>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
-                {facilitiesConfig.map((facility) => {
-                  const Icon = facility.icon;
-                  const value =
-                    item.facilities?.[
-                      facility.key as keyof typeof item.facilities
-                    ];
-                  return (
-                    <View
-                      key={facility.key}
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        marginRight: 12,
-                      }}
-                    >
-                      <Icon
-                        {...facility.iconProps}
-                        name={facility.iconProps.name as any}
-                        color={value ? facility.color : "#ccc"}
-                      />
-                      <Text
-                        style={{
-                          marginLeft: 4,
-                          color: value ? "#222" : "#ccc",
-                          textDecorationLine: value ? "none" : "line-through",
-                        }}
-                      >
-                        {facility.label}
-                      </Text>
-                    </View>
-                  );
-                })}
-              </View>
-            </View>
-            <View style={{ marginTop: 16 }}>
-              <Text
-                style={{
-                  fontWeight: "bold",
-                  fontSize: 16,
-                  marginBottom: 6,
-                }}
-              >
-                Equipamiento:
-              </Text>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
-                {equipmentConfig.map((equip) => {
-                  const Icon = equip.icon;
-                  const value =
-                    item.equipment?.[equip.key as keyof typeof item.equipment];
-                  return (
-                    <View
-                      key={equip.key}
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        marginRight: 12,
-                      }}
-                    >
-                      <Icon
-                        {...equip.iconProps}
-                        name={equip.iconProps.name as any}
-                        color={value ? equip.color : "#ccc"}
-                      />
-                      <Text
-                        style={{
-                          marginLeft: 4,
-                          color: value ? "#222" : "#ccc",
-                          textDecorationLine: value ? "none" : "line-through",
-                        }}
-                      >
-                        {equip.label}
-                      </Text>
-                    </View>
-                  );
-                })}
-              </View>
-            </View>
-          </>
-          <Text style={{ marginTop: 20, fontWeight: "bold", fontSize: 20 }}>
-            ¡Califícanos!
-          </Text>
-
-          <View style={styles.rating}>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+          {/* Sistema de Tabs */}
+          <View style={styles.tabContainer}>
+            <Pressable
+              style={[styles.tab, activeTab === "info" && styles.activeTab]}
+              onPress={() => setActiveTab("info")}
             >
-              {stars.map((star, index) => {
-                // pintar las estrellas segun la calificación
-                const isFilled = rating ? index < rating : false;
-                return (
-                  <Pressable
-                    key={index}
-                    onPress={() => handleRating(index + 1)}
-                    style={{ marginRight: 2, display: "flex" }}
-                  >
-                    <IconSymbol
-                      size={35}
-                      name={isFilled ? "star.fill" : "star"}
-                      color={"#FFD700"}
-                    />
-                  </Pressable>
-                );
-              })}
-            </View>
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === "info" && styles.activeTabText,
+                ]}
+              >
+                Información
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[styles.tab, activeTab === "reservas" && styles.activeTab]}
+              onPress={() => setActiveTab("reservas")}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === "reservas" && styles.activeTabText,
+                ]}
+              >
+                Reservas
+              </Text>
+            </Pressable>
           </View>
-          {/* Fin instalaciones y equipamiento */}
+
+          {/* Contenido del Tab Activo */}
+          {activeTab === "info" ? (
+            // Contenido de Información
+            <>
+              {/* Instalaciones y equipamiento */}
+              <View style={{ marginTop: 16 }}>
+                <Text
+                  style={{
+                    fontWeight: "bold",
+                    fontSize: 16,
+                    marginBottom: 6,
+                  }}
+                >
+                  Instalaciones:
+                </Text>
+                <View
+                  style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}
+                >
+                  {facilitiesConfig.map((facility) => {
+                    const Icon = facility.icon;
+                    const value =
+                      item.facilities?.[
+                        facility.key as keyof typeof item.facilities
+                      ];
+                    return (
+                      <View
+                        key={facility.key}
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          marginRight: 12,
+                        }}
+                      >
+                        <Icon
+                          {...facility.iconProps}
+                          name={facility.iconProps.name as any}
+                          color={value ? facility.color : "#ccc"}
+                        />
+                        <Text
+                          style={{
+                            marginLeft: 4,
+                            color: value ? "#222" : "#ccc",
+                            textDecorationLine: value ? "none" : "line-through",
+                          }}
+                        >
+                          {facility.label}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+              <View style={{ marginTop: 16 }}>
+                <Text
+                  style={{
+                    fontWeight: "bold",
+                    fontSize: 16,
+                    marginBottom: 6,
+                  }}
+                >
+                  Equipamiento:
+                </Text>
+                <View
+                  style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}
+                >
+                  {equipmentConfig.map((equip) => {
+                    const Icon = equip.icon;
+                    const value =
+                      item.equipment?.[
+                        equip.key as keyof typeof item.equipment
+                      ];
+                    return (
+                      <View
+                        key={equip.key}
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          marginRight: 12,
+                        }}
+                      >
+                        <Icon
+                          {...equip.iconProps}
+                          name={equip.iconProps.name as any}
+                          color={value ? equip.color : "#ccc"}
+                        />
+                        <Text
+                          style={{
+                            marginLeft: 4,
+                            color: value ? "#222" : "#ccc",
+                            textDecorationLine: value ? "none" : "line-through",
+                          }}
+                        >
+                          {equip.label}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {/* Sección de Calificación */}
+              <Text style={{ marginTop: 20, fontWeight: "bold", fontSize: 20 }}>
+                ¡Califícanos!
+              </Text>
+
+              <View style={styles.rating}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {stars.map((star, index) => {
+                    // pintar las estrellas segun la calificación
+                    const isFilled = rating ? index < rating : false;
+                    return (
+                      <Pressable
+                        key={index}
+                        onPress={() => handleRating(index + 1)}
+                        style={{ marginRight: 2, display: "flex" }}
+                      >
+                        <IconSymbol
+                          size={35}
+                          name={isFilled ? "star.fill" : "star"}
+                          color={"#FFD700"}
+                        />
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            </>
+          ) : (
+            // Contenido de Reservas
+            <View style={{ marginTop: 16 }}>
+              <FieldsList fields={fields} />
+            </View>
+          )}
         </View>
       </View>
     </ScrollView>
@@ -330,5 +376,40 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     paddingHorizontal: 10,
     fontSize: 16,
+  },
+  // Estilos para el sistema de tabs
+  tabContainer: {
+    flexDirection: "row",
+    marginTop: 20,
+
+    backgroundColor: "#f8f9fa",
+    borderRadius: 12,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  activeTab: {
+    backgroundColor: "#007AFF",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  tabText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#666",
+  },
+  activeTabText: {
+    color: "white",
   },
 });

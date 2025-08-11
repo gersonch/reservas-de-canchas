@@ -1,8 +1,15 @@
+import { AnimatedAccordion } from "@/components/ui/AnimatedAccordion";
+import { AnimatedIcon } from "@/components/ui/AnimatedIcon";
 import { API_URL } from "@/constants/config";
 import api from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
-import React, { useEffect, useRef, useState } from "react";
-import { Animated, Pressable, ScrollView, Text, View } from "react-native";
+import {
+  Field,
+  FieldsListProps,
+  Reservation,
+} from "@/types/reservations.interfaces";
+import React, { useState } from "react";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
 const daysMap = [
   "Domingo",
@@ -31,39 +38,6 @@ function getNext7Days() {
   return days;
 }
 
-interface Reservation {
-  _id: string;
-  fieldId: string;
-  userId: string;
-  complexId: string;
-  startTime: string; // "2025-08-05T10:00"
-  duration: string;
-  price: number;
-  createdAt: string;
-  __v?: number;
-}
-
-interface Availability {
-  dayOfWeek: number;
-  from: string;
-  to: string;
-  prices?: any[];
-}
-
-interface Field {
-  _id: string;
-  name: string;
-  type: string;
-  complexId: string;
-  availability: Availability[];
-  __v?: number;
-}
-
-interface FieldsListProps {
-  fields: Field[];
-  reservations?: Reservation[]; // Agregar reservations como prop opcional
-}
-
 function getTimeSlots(from?: string, to?: string) {
   if (typeof from !== "string" || typeof to !== "string") return [];
   const start = Number(from.split(":")[0]);
@@ -71,131 +45,17 @@ function getTimeSlots(from?: string, to?: string) {
   return Array.from({ length: end - start }, (_, i) => `${start + i}:00`);
 }
 
-// Componente de ícono animado para el acordeón
-const AnimatedIcon: React.FC<{ isExpanded: boolean }> = ({ isExpanded }) => {
-  const rotateAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(rotateAnim, {
-      toValue: isExpanded ? 1 : 0,
-      duration: 250,
-      useNativeDriver: true,
-    }).start();
-  }, [isExpanded, rotateAnim]);
-
-  const rotation = rotateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0deg", "45deg"], // Rotación suave del símbolo +
-  });
-
-  return (
-    <Animated.Text
-      style={{
-        fontSize: 20,
-        color: "#007AFF",
-        fontWeight: "600",
-        transform: [{ rotate: rotation }],
-      }}
-    >
-      +
-    </Animated.Text>
-  );
-};
-
-// Componente de acordeón animado con altura dinámica
-const AnimatedAccordion: React.FC<{
-  isExpanded: boolean;
-  children: React.ReactNode;
-}> = ({ isExpanded, children }) => {
-  const animatedHeight = useRef(new Animated.Value(0)).current;
-  const animatedOpacity = useRef(new Animated.Value(0)).current;
-  const [contentHeight, setContentHeight] = useState(0);
-  const [showContent, setShowContent] = useState(false);
-
-  useEffect(() => {
-    if (isExpanded) {
-      setShowContent(true);
-      Animated.parallel([
-        Animated.timing(animatedHeight, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: false,
-        }),
-        Animated.timing(animatedOpacity, {
-          toValue: 1,
-          duration: 250,
-          useNativeDriver: false,
-        }),
-      ]).start();
-    } else {
-      Animated.parallel([
-        Animated.timing(animatedHeight, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: false,
-        }),
-        Animated.timing(animatedOpacity, {
-          toValue: 0,
-          duration: 250,
-          useNativeDriver: false,
-        }),
-      ]).start(({ finished }) => {
-        if (finished) {
-          setShowContent(false);
-        }
-      });
-    }
-  }, [isExpanded, animatedHeight, animatedOpacity]);
-
-  // Altura máxima dinámica basada en el contenido real
-  const maxHeight = animatedHeight.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, Math.max(contentHeight, 200)], // Altura mínima de 200px
-  });
-
-  if (!showContent && !isExpanded) {
-    return null;
-  }
-
-  return (
-    <Animated.View
-      style={{
-        maxHeight,
-        opacity: animatedOpacity,
-        overflow: "hidden",
-      }}
-    >
-      <View
-        style={{
-          paddingHorizontal: 18,
-          paddingBottom: 18,
-          backgroundColor: "#fafafa",
-          borderTopWidth: 1,
-          borderTopColor: "#f0f0f0",
-        }}
-        onLayout={(event) => {
-          const { height } = event.nativeEvent.layout;
-          if (height > 0 && height !== contentHeight) {
-            setContentHeight(height);
-          }
-        }}
-      >
-        {children}
-      </View>
-    </Animated.View>
-  );
-};
-
-export const FieldsList: React.FC<FieldsListProps> = ({
+export function FieldsList({
   fields,
   reservations: propReservations = [],
-}) => {
-  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+}: FieldsListProps) {
+  const next7Days = getNext7Days();
+  const [selectedDay, setSelectedDay] = useState<number | null>(
+    next7Days[0]?.dayOfWeek || null
+  );
   const [expandedField, setExpandedField] = useState<string | null>(null);
   const [reservations, setReservations] =
     useState<Reservation[]>(propReservations);
-
-  const next7Days = getNext7Days();
 
   // Función para verificar si un slot está reservado
   const isSlotReserved = (
@@ -231,29 +91,6 @@ export const FieldsList: React.FC<FieldsListProps> = ({
   };
   const { user } = useAuthStore();
 
-  // Establecer el primer día disponible al cargar los campos
-  useEffect(() => {
-    if (fields.length > 0 && selectedDay === null) {
-      // Encontrar el primer día disponible
-      let firstAvailableDay = null;
-      for (const day of next7Days) {
-        const hasAvailability = fields.some((field) =>
-          field.availability?.some((avail) => avail.dayOfWeek === day.dayOfWeek)
-        );
-        if (hasAvailability) {
-          firstAvailableDay = day.dayOfWeek;
-          break;
-        }
-      }
-      setSelectedDay(firstAvailableDay || next7Days[0]?.dayOfWeek || null);
-    }
-  }, [fields, selectedDay, next7Days]);
-
-  // Cerrar acordeones cuando cambie el día seleccionado
-  useEffect(() => {
-    setExpandedField(null);
-  }, [selectedDay]);
-
   const toggleField = (fieldId: string) => {
     setExpandedField((prev) => (prev === fieldId ? null : fieldId));
   };
@@ -272,18 +109,7 @@ export const FieldsList: React.FC<FieldsListProps> = ({
   };
 
   return (
-    <View style={{ marginTop: 24, marginBottom: 20 }}>
-      <Text
-        style={{
-          fontWeight: "bold",
-          fontSize: 20,
-          marginBottom: 16,
-          color: "#333",
-        }}
-      >
-        Reservar Canchas
-      </Text>
-
+    <View style={{ marginBottom: 20 }}>
       {/* Selector de días */}
       <Text
         style={{
@@ -327,6 +153,7 @@ export const FieldsList: React.FC<FieldsListProps> = ({
               shadowOpacity: 0.1,
               shadowRadius: 2,
               elevation: 2,
+              marginBlock: 2,
             }}
           >
             <Text
@@ -481,7 +308,9 @@ export const FieldsList: React.FC<FieldsListProps> = ({
                                   textAlign: "center",
                                 }}
                               >
-                                {slot}
+                                {Number(slot.split(":")[0]) > 9
+                                  ? slot
+                                  : `0${slot}`}
                               </Text>
                             </Pressable>
                           );
@@ -496,6 +325,7 @@ export const FieldsList: React.FC<FieldsListProps> = ({
                         borderRadius: 12,
                         borderLeftWidth: 4,
                         borderLeftColor: "#ffc107",
+                        marginTop: 12,
                       }}
                     >
                       <Text
@@ -521,11 +351,6 @@ export const FieldsList: React.FC<FieldsListProps> = ({
           Selecciona un día para ver las canchas disponibles
         </Text>
       )}
-
-      {/* Depuración visual de los datos recibidos */}
-      {/* <Text style={{ fontSize: 10, color: "#aaa", marginTop: 20 }}>
-        {JSON.stringify(fields, null, 2)}
-      </Text> */}
     </View>
   );
-};
+}

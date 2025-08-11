@@ -14,14 +14,14 @@ const getConfig = (): Config => {
   if (isDev && !isExpo) {
     // Desarrollo local
     return {
-      API_URL: "http://192.168.1.4:3000",
+      API_URL: "http://192.168.1.2:3000",
       DEBUG: true,
       APP_ENV: "development",
     };
   } else if (isExpo || Constants.executionEnvironment === "standalone") {
     // Aplicación empaquetada (APK/IPA)
     return {
-      API_URL: "http://192.168.1.4:3000", // Cambia esta URL por tu API real
+      API_URL: "http://192.168.1.2:3000", // Cambia esta URL por tu API real
       DEBUG: false,
       APP_ENV: "production",
     };
