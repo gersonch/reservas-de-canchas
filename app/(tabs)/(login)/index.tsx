@@ -2,6 +2,7 @@ import { IconSymbol } from "@/components/ui/IconSymbol";
 import { useAuthStore } from "@/store/useAuthStore";
 import Profile from "../../profile/Profile";
 
+import * as Google from "expo-auth-session/providers/google";
 import { Link } from "expo-router";
 import { useState } from "react";
 import {
@@ -21,7 +22,19 @@ export default function Login() {
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
-  const { user, loading, login } = useAuthStore();
+  const { user, loading, login, loginGoogle } = useAuthStore();
+
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+    clientId:
+      "137098234037-cebqdcrrfj94040hph6oqgenoemmqj14.apps.googleusercontent.com",
+  });
+
+  async function handleGoogleLogin() {
+    const res = await promptAsync();
+    if (res?.type === "success" && res.authentication?.accessToken) {
+      await loginGoogle(res.authentication.accessToken);
+    }
+  }
 
   const showToast = (type: "success" | "error" | "info", message: string) => {
     Toast.show({
@@ -106,7 +119,7 @@ export default function Login() {
             <Text style={styles.buttonText}>Iniciar sesión</Text>
           </Pressable>
 
-          <Pressable style={styles.googleButton} onPress={() => {}}>
+          <Pressable style={styles.googleButton} onPress={handleGoogleLogin}>
             <View style={styles.googleContent}>
               <Image
                 source={{
