@@ -23,7 +23,7 @@ export default function DetailsPage() {
   return (
     <>
       <BackButton />
-      <ScrollView>
+      <ScrollView showsVerticalScrollIndicator={false}>
         <CardDetalles item={complejoItem} param={id} />
       </ScrollView>
     </>

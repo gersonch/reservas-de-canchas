@@ -1,5 +1,5 @@
 import { BackButton } from "@/components/BackButton";
-import { ComplejoCard } from "@/components/home/components/ComplejoCard";
+import { ComplejoCard } from "@/components/home/ComplejoCard";
 import { ScrollView, Text } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 

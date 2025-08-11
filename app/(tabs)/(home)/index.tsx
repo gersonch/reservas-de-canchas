@@ -12,8 +12,8 @@ import {
   View,
 } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { ComplejoCard } from "../../../components/home/components/ComplejoCard";
-import { SearchModal } from "../../../components/home/components/SearchModal";
+import { ComplejoCard } from "../../../components/home/ComplejoCard";
+import { SearchModal } from "../../../components/home/SearchModal";
 
 type Complex = {
   _id: string;

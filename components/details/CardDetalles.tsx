@@ -18,6 +18,7 @@ import {
   View,
 } from "react-native";
 import Toast from "react-native-toast-message";
+import { FieldsList } from "./FieldsList";
 
 export function CardDetalles({ item, param }: { item: IComplejo; param: any }) {
   // Configuración de instalaciones (fuera del return)
@@ -26,13 +27,19 @@ export function CardDetalles({ item, param }: { item: IComplejo; param: any }) {
     "https://img.freepik.com/vector-premium/vector-icono-imagen-predeterminado-pagina-imagen-faltante-diseno-sitio-web-o-aplicacion-movil-no-hay-foto-disponible_87543-11093.jpg";
 
   const [rating, setRating] = useState<number>(0);
+  const [fields, setFields] = useState<any[]>([]);
 
   const { user } = useAuthStore();
   const [numberOfStars, setNumberOfStars] = useState<number | null>(null);
 
   const stars = Array.from({ length: 5 }, (_, index) => index + 1);
+  const fetchFields = async () => {
+    const response = await api.get(`${API_URL}/fields/complex/${param}`);
+    setFields(response.data);
+  };
 
   useEffect(() => {
+    fetchFields();
     const fetchRatingForComplex = async () => {
       try {
         const response = await api.get(`${API_URL}/rating?ids=${param}`);
@@ -67,7 +74,6 @@ export function CardDetalles({ item, param }: { item: IComplejo; param: any }) {
       });
 
       if (response.status !== 201) {
-        console.log(response.status);
         showToast("error", "Error al enviar calificación");
         return;
       }
@@ -82,7 +88,7 @@ export function CardDetalles({ item, param }: { item: IComplejo; param: any }) {
   };
 
   return (
-    <ScrollView>
+    <ScrollView showsVerticalScrollIndicator={false}>
       <View style={styles.card}>
         {/* Imagen en la parte superior */}
         <Image
@@ -139,38 +145,10 @@ export function CardDetalles({ item, param }: { item: IComplejo; param: any }) {
               </Text>
             </Text>
           </Pressable>
-          <Text style={{ marginTop: 10, fontWeight: "bold", fontSize: 20 }}>
-            Reservar
-          </Text>
 
-          <View style={styles.rating}>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              {stars.map((star, index) => {
-                // pintar las estrellas segun la calificación
-                const isFilled = rating ? index < rating : false;
-                return (
-                  <Pressable
-                    key={index}
-                    onPress={() => handleRating(index + 1)}
-                    style={{ marginRight: 2, display: "flex" }}
-                  >
-                    <IconSymbol
-                      size={35}
-                      name={isFilled ? "star.fill" : "star"}
-                      color={"#FFD700"}
-                    />
-                  </Pressable>
-                );
-              })}
-            </View>
-          </View>
-          <Text style={{ marginTop: 4, marginLeft: 4 }}>¡Califícanos!</Text>
+          {/* Sección de Reservas */}
+          <FieldsList fields={fields} />
+
           {/* Instalaciones y equipamiento */}
           <>
             <View style={{ marginTop: 16 }}>
@@ -262,6 +240,37 @@ export function CardDetalles({ item, param }: { item: IComplejo; param: any }) {
               </View>
             </View>
           </>
+          <Text style={{ marginTop: 20, fontWeight: "bold", fontSize: 20 }}>
+            ¡Califícanos!
+          </Text>
+
+          <View style={styles.rating}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {stars.map((star, index) => {
+                // pintar las estrellas segun la calificación
+                const isFilled = rating ? index < rating : false;
+                return (
+                  <Pressable
+                    key={index}
+                    onPress={() => handleRating(index + 1)}
+                    style={{ marginRight: 2, display: "flex" }}
+                  >
+                    <IconSymbol
+                      size={35}
+                      name={isFilled ? "star.fill" : "star"}
+                      color={"#FFD700"}
+                    />
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
           {/* Fin instalaciones y equipamiento */}
         </View>
       </View>
@@ -273,8 +282,7 @@ const styles = StyleSheet.create({
   card: {
     width: "100%",
     marginTop: 0, // Sin márgenes
-    minHeight: 1000,
-    height: 1000,
+    flex: 1, // Usar flex en lugar de altura fija
   },
   image: {
     width: "100%",
@@ -306,6 +314,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginTop: 12,
+    marginBottom: 40,
   },
   ratingText: {
     fontWeight: "500",
