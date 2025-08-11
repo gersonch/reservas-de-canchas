@@ -53,15 +53,18 @@ const toastConfig = {
 };
 
 export default function RootLayout() {
-  const { checkAuth, loading } = useAuthStore();
+  const { checkAuth, loading, user } = useAuthStore();
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
-  const { profile } = useProfileStore();
+  const { setProfile } = useProfileStore();
 
   useEffect(() => {
     checkAuth();
-  }, [checkAuth, profile]);
+    if (user?.id) {
+      setProfile(user.id);
+    }
+  }, [checkAuth, user?.id]);
 
   if (!loaded || loading) {
     return null;

@@ -51,6 +51,16 @@ export function FieldsList({
   fields,
   reservations: propReservations = [],
 }: FieldsListProps) {
+  // Formatea Date o string ISO a 'YYYY-MM-DDTHH:mm'
+  function formatDateToSlotString(dateOrString: Date | string) {
+    const date =
+      typeof dateOrString === "string" ? new Date(dateOrString) : dateOrString;
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hour = String(date.getHours()).padStart(2, "0");
+    return `${year}-${month}-${day}T${hour}:00`;
+  }
   const next7Days = getNext7Days();
   const [selectedDay, setSelectedDay] = useState<number | null>(
     next7Days[0]?.dayOfWeek || null
@@ -87,7 +97,7 @@ export function FieldsList({
     const isReserved = reservations.some(
       (reservation) =>
         reservation.fieldId === fieldId &&
-        reservation.startTime === slotTimeString
+        formatDateToSlotString(reservation.startTime) === slotTimeString
     );
 
     return isReserved;
@@ -117,6 +127,7 @@ export function FieldsList({
     );
     return availability;
   };
+
   const showToast = (type: "success" | "error" | "info", message: string) => {
     Toast.show({
       type,
@@ -133,23 +144,15 @@ export function FieldsList({
     const selectedDateObj = new Date(selectedDate);
     selectedDateObj.setHours(parseInt(hour), 0, 0, 0);
 
-    // Formato: "YYYY-MM-DDTHH:mm"
-    const year = selectedDateObj.getFullYear();
-    const month = String(selectedDateObj.getMonth() + 1).padStart(2, "0");
-    const day = String(selectedDateObj.getDate()).padStart(2, "0");
-    const hourStr = String(selectedDateObj.getHours()).padStart(2, "0");
-    const startTime = `${year}-${month}-${day}T${hourStr}:00`;
-    console.log(startTime);
-
+    // Enviar el objeto Date directamente
     const reservationData = {
       fieldId: field._id,
       userId: user?.id,
-      startTime: startTime,
+      startTime: selectedDateObj, // <-- aquí va como Date
       complexId: field.complexId,
       price: 12000,
       duration: "01:00",
     };
-    console.log(reservationData);
 
     try {
       const response = await api.post(
@@ -157,7 +160,6 @@ export function FieldsList({
         reservationData
       );
       showToast("success", "Reserva exitosa");
-      console.log("Reserva exitosa:", response.data);
     } catch (error) {
       console.error("Error al reservar:", error);
       showToast("error", "Error al reservar");
@@ -165,7 +167,7 @@ export function FieldsList({
   };
 
   const { profile } = useProfileStore();
-  console.log(profile?.rut);
+
   return (
     <View style={{ marginBottom: 20 }}>
       {/* Selector de días */}

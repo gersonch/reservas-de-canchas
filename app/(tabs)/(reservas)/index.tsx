@@ -1,79 +1,87 @@
+import { API_URL } from "@/constants/config";
+import api from "@/lib/api";
+import { useAuthStore } from "@/store/useAuthStore";
 import { format } from "date-fns";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import {
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Reservar() {
-  const reservas = [
-    {
-      id: 1,
-      fecha: "2023-09-15",
-      hora_inicio: "10:00",
-      hora_fin: "11:00",
-      estado: "confirmada",
-      cancha_id: {
-        numero: 1,
-        deporte: "futbol",
-        complejo_id: { nombre: "Complejo Deportivo" },
-      },
-    },
-    {
-      id: 2,
-      fecha: "2023-09-16",
-      hora_inicio: "10:00",
-      hora_fin: "11:00",
-      estado: "pendiente",
-      cancha_id: {
-        numero: 1,
-        deporte: "futbol",
-        complejo_id: { nombre: "Complejo Deportivo" },
-      },
-    },
+  const [reservas, setReservas] = useState<any[]>([]);
+  const { user } = useAuthStore();
+  const [refresh, setRefresh] = useState(false);
+  const daysMap = [
+    "Domingo",
+    "Lunes",
+    "Martes",
+    "Miércoles",
+    "Jueves",
+    "Viernes",
+    "Sábado",
   ];
 
+  const fetchReservas = async () => {
+    if (!user) return;
+
+    const response = await api.get(`${API_URL}/reservations/user/${user.id}`);
+    setReservas(response.data);
+  };
+
+  useEffect(() => {
+    fetchReservas();
+  }, [user]);
+
+  function handleRefresh() {
+    setRefresh(true);
+
+    fetchReservas();
+    setTimeout(() => {
+      setRefresh(false);
+    }, 1000); // Simula un delay para la actualización
+  }
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Mis Reservas</Text>
-      {reservas.length === 0 ? (
-        <Text style={styles.emptyText}>Aún no tienes reservas.</Text>
-      ) : (
-        reservas.map((reserva) => (
-          <View key={reserva.id} style={styles.card}>
-            <Text style={styles.complejo}>
-              {reserva.cancha_id.complejo_id.nombre}
-            </Text>
-            <Text style={styles.detalle}>
-              Cancha #{reserva.cancha_id.numero} -{" "}
-              {reserva.cancha_id.deporte.toUpperCase()}
-            </Text>
-            <Text style={styles.fecha}>
-              {format(new Date(reserva.fecha), "dd/MM/yyyy")} |{" "}
-              {reserva.hora_inicio.slice(0, 5)} - {reserva.hora_fin.slice(0, 5)}
-            </Text>
-            <Text
-              style={[
-                styles.estado,
-                {
-                  backgroundColor:
-                    reserva.estado === "pendiente"
-                      ? "#FF9800"
-                      : reserva.estado === "confirmada"
-                      ? "#4CAF50"
-                      : "#f44336",
-                },
-              ]}
-            >
-              {reserva.estado.toUpperCase()}
-            </Text>
-          </View>
-        ))
-      )}
-    </ScrollView>
+    <SafeAreaView style={{ height: "100%" }}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        refreshControl={
+          <RefreshControl refreshing={refresh} onRefresh={handleRefresh} />
+        }
+      >
+        <Text style={styles.title}>Mis Reservas</Text>
+        {reservas.length === 0 ? (
+          <Text style={styles.emptyText}>Aún no tienes reservas.</Text>
+        ) : (
+          reservas.map((reserva) => {
+            const dia = reserva.startTime;
+            const day = new Date(dia).getDay();
+            return (
+              <View key={reserva._id} style={styles.card}>
+                <Text style={styles.complejo}>{reserva.complexName}</Text>
+                <Text style={styles.detalle}>{reserva.fieldName}</Text>
+                <Text style={styles.dia}>{`${daysMap[day]}`}</Text>
+                <Text style={styles.fecha}>
+                  {format(new Date(reserva.startTime), "dd/MM/yyyy HH:mm")} |
+                  Duración: {reserva.duration} hs
+                </Text>
+                <Text style={styles.precio}>Precio: ${reserva.price}</Text>
+              </View>
+            );
+          })
+        )}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    paddingTop: 60,
   },
   title: {
     fontSize: 24,
@@ -115,14 +123,16 @@ const styles = StyleSheet.create({
     color: "#666",
     marginBottom: 6,
   },
-  estado: {
-    alignSelf: "flex-start",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 12,
-    overflow: "hidden",
+  precio: {
+    fontSize: 14,
+    color: "#1976D2",
+    fontWeight: "bold",
+    marginBottom: 4,
+  },
+  dia: {
+    fontSize: 14,
+    color: "#555",
+    fontWeight: "500",
+    marginBottom: 4,
   },
 });

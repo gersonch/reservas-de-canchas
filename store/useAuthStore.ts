@@ -64,6 +64,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         loading: false,
         message: "Login successful",
       });
+      // Verificar y cargar el perfil del usuario
     } catch (error) {
       console.warn("Login error:", error);
       set({
