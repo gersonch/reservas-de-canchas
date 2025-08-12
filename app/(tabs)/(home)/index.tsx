@@ -1,4 +1,5 @@
 import LocationComponent from "@/components/Location";
+import { ComplejoCardSkeleton } from "@/components/skeletons/HomeSkeleton";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { fetchData } from "@/store/fetch"; // o tu función fetch centralizada
 import { useComplexStore } from "@/store/useComplexStore"; // importa el store
@@ -20,7 +21,7 @@ type Complex = {
 };
 
 export default function Home() {
-  const isLoading = false;
+  const [isLoading, setIsLoading] = useState(true); // Cambiar a true para mostrar skeleton inicial
   const [isModalOpen, setIsModalOpen] = useState(false);
   const searchModalRef = useRef<{ openModal: () => void }>(null);
   const [refresh, setRefresh] = useState(false);
@@ -31,34 +32,42 @@ export default function Home() {
   const [ratings, setRatings] = useState([]);
 
   // Move fetchComplejos outside useEffect so it can be reused
-  const fetchComplejos = useCallback(async () => {
-    try {
-      const complexes = await fetchData("complexes");
-      if (
-        complexes &&
-        complexes.data &&
-        Array.isArray(complexes.data) &&
-        complexes.data.length > 0
-      ) {
-        setComplejos(complexes.data);
-        const ids = (complexes.data as Complex[]).map((c) => c._id).join(",");
-        const ratingsRes = await fetchData(`rating?ids=${ids}`);
-        setRatings(ratingsRes && ratingsRes.data ? ratingsRes.data : []);
-      } else {
-        console.warn("No complexes data available");
+  const fetchComplejos = useCallback(
+    async (isRefresh = false) => {
+      try {
+        // Solo mostrar skeleton en carga inicial, no en refresh
+        if (!isRefresh) {
+          setIsLoading(true);
+        }
+        const complexes = await fetchData("complexes");
+        if (
+          complexes &&
+          complexes.data &&
+          Array.isArray(complexes.data) &&
+          complexes.data.length > 0
+        ) {
+          setComplejos(complexes.data);
+          const ids = (complexes.data as Complex[]).map((c) => c._id).join(",");
+          const ratingsRes = await fetchData(`rating?ids=${ids}`);
+          setRatings(ratingsRes && ratingsRes.data ? ratingsRes.data : []);
+        } else {
+          console.warn("No complexes data available");
+          setComplejos([]);
+          setRatings([]);
+        }
+      } catch (error) {
+        console.warn("Failed to fetch complejos or ratings:", error);
         setComplejos([]);
         setRatings([]);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.warn("Failed to fetch complejos or ratings:", error);
-      // Asegurar que los estados tengan valores por defecto
-      setComplejos([]);
-      setRatings([]);
-    }
-  }, [setComplejos]);
+    },
+    [setComplejos]
+  );
 
   useEffect(() => {
-    fetchComplejos();
+    fetchComplejos(); // Carga inicial sin parámetro (isRefresh = false por defecto)
   }, [fetchComplejos]);
 
   function handleSearchPressable() {
@@ -69,8 +78,8 @@ export default function Home() {
 
   function handleRefresh() {
     setRefresh(true);
-
-    fetchComplejos();
+    // Pasamos true para indicar que es refresh
+    fetchComplejos(true);
     setTimeout(() => {
       setRefresh(false);
     }, 1000); // Simula un delay para la actualización
@@ -107,12 +116,18 @@ export default function Home() {
               setIsModalOpen={setIsModalOpen}
             />
 
-            {complejos.length === 0 ? (
+            {isLoading ? (
+              <ComplejoCardSkeleton
+                complejo={[]}
+                isLoading={true}
+                ratings={[]}
+              />
+            ) : complejos.length === 0 ? (
               <Text>No hay complejos cargados</Text>
             ) : (
               <ComplejoCard
                 complejo={complejos}
-                isLoading={isLoading}
+                isLoading={false}
                 ratings={ratings}
               />
             )}
