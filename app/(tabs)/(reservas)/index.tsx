@@ -2,8 +2,9 @@ import ReservasSkeleton from "@/components/skeletons/ReservasSkeleton";
 import { API_URL } from "@/constants/config";
 import api from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
-import { Entypo } from "@expo/vector-icons";
+import { Entypo, FontAwesome } from "@expo/vector-icons";
 import { format } from "date-fns";
+import { Link } from "expo-router";
 import { useEffect, useState } from "react";
 
 import {
@@ -19,7 +20,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Reservar() {
   const [reservas, setReservas] = useState<any[]>([]);
-  const { user } = useAuthStore();
+  const { user, token } = useAuthStore();
   const [refresh, setRefresh] = useState(false);
   const [showDropdown, setShowDropdown] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
@@ -42,10 +43,14 @@ export default function Reservar() {
       if (!isRefresh) {
         setInitialLoading(true);
       }
-      const response = await api.get(`${API_URL}/reservations/user/${user.id}`);
+      const response = await api.get(`${API_URL}/reservations/user`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setReservas(response.data);
     } catch (error) {
-      console.error("Error al obtener reservas:", error);
+      throw new Error("Error al obtener reservas");
     } finally {
       setInitialLoading(false);
     }
@@ -126,7 +131,20 @@ export default function Reservar() {
           <RefreshControl refreshing={refresh} onRefresh={handleRefresh} />
         }
       >
-        <Text style={styles.title}>Mis Reservas</Text>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "space-between",
+            flexDirection: "row",
+            alignItems: "center",
+            marginBottom: 20,
+          }}
+        >
+          <Text style={styles.title}>Mis Reservas</Text>
+          <Link href="/history">
+            <FontAwesome name="history" size={20} color="blue" />
+          </Link>
+        </View>
         {reservas.length === 0 ? (
           <Text style={styles.emptyText}>Aún no tienes reservas.</Text>
         ) : (
@@ -194,7 +212,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 20,
     color: "#333",
   },
   emptyText: {

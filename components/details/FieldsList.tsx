@@ -65,6 +65,9 @@ export function FieldsList({
   const [selectedDay, setSelectedDay] = useState<number | null>(
     next7Days[0]?.dayOfWeek || null
   );
+  const [loadingSlots, setLoadingSlots] = useState<{ [key: string]: boolean }>(
+    {}
+  );
   const [expandedField, setExpandedField] = useState<string | null>(null);
   const [reservations, setReservations] =
     useState<Reservation[]>(propReservations);
@@ -112,7 +115,14 @@ export function FieldsList({
   const { user } = useAuthStore();
 
   const toggleField = (fieldId: string) => {
-    setExpandedField((prev) => (prev === fieldId ? null : fieldId));
+    setExpandedField((prev) => {
+      if (prev === fieldId) {
+        setLoadingSlots((slots) => ({ ...slots, [fieldId]: false }));
+        return null;
+      }
+      setLoadingSlots((slots) => ({ ...slots, [fieldId]: false }));
+      return fieldId;
+    });
   };
 
   const getFieldsForDay = (dayOfWeek: number) => {
@@ -159,6 +169,8 @@ export function FieldsList({
         `${API_URL}/reservations`,
         reservationData
       );
+      const newReservation = response.data;
+      setReservations((prev) => [...prev, newReservation]);
       showToast("success", "Reserva exitosa");
     } catch (error) {
       console.error("Error al reservar:", error);
@@ -255,6 +267,11 @@ export function FieldsList({
             const availability = getAvailabilityForDay(field, selectedDay);
             const slots = getTimeSlots(availability?.from, availability?.to);
 
+            // Resetea el loading si el acordeón está cerrado y el loading sigue activo
+            if (!isExpanded && loadingSlots[field._id]) {
+              setLoadingSlots((slots) => ({ ...slots, [field._id]: false }));
+            }
+
             return (
               <View
                 key={field._id}
@@ -278,14 +295,27 @@ export function FieldsList({
                 <Pressable
                   onPress={async () => {
                     toggleField(field._id);
+                    setLoadingSlots((slots) => ({
+                      ...slots,
+                      [field._id]: true,
+                    }));
                     try {
                       const response = await api.get(
                         `${API_URL}/reservations/${field._id}`
                       );
                       const data = response.data;
                       setReservations(data);
+
+                      setLoadingSlots((slots) => ({
+                        ...slots,
+                        [field._id]: false,
+                      }));
                     } catch (error) {
                       console.error("Error fetching reservations:", error);
+                      setLoadingSlots((slots) => ({
+                        ...slots,
+                        [field._id]: false,
+                      }));
                     }
                   }}
                   style={{
@@ -308,7 +338,44 @@ export function FieldsList({
                 </Pressable>
 
                 <AnimatedAccordion isExpanded={isExpanded}>
-                  {availability && slots.length > 0 ? (
+                  {loadingSlots[field._id] ? (
+                    <View>
+                      <View
+                        style={{
+                          height: 20,
+                          backgroundColor: "#f0f0f0",
+                          padding: 20,
+                          paddingHorizontal: 40,
+                          marginBlock: 10,
+                          marginHorizontal: 10,
+                          width: 100,
+                          borderRadius: 8,
+                        }}
+                      ></View>
+                      <View
+                        style={{
+                          width: "100%",
+                          flexDirection: "row",
+                          gap: 8,
+                          padding: 8,
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        {new Array(9).fill(null).map((_, i) => (
+                          <View
+                            key={i}
+                            style={{
+                              height: 20,
+                              backgroundColor: "#f0f0f0",
+                              padding: 20,
+                              width: 100,
+                              borderRadius: 8,
+                            }}
+                          />
+                        ))}
+                      </View>
+                    </View>
+                  ) : availability && slots.length > 0 ? (
                     <View>
                       <Text
                         style={{
@@ -334,11 +401,23 @@ export function FieldsList({
                             selectedDate,
                             slot
                           );
+                          // Lógica para deshabilitar slots pasados en el día actual
+                          const now = new Date();
+                          const isToday =
+                            selectedDate.toDateString() === now.toDateString();
+                          const slotDateTime = new Date(selectedDate);
+                          slotDateTime.setHours(
+                            parseInt(slot.split(":")[0]),
+                            0,
+                            0,
+                            0
+                          );
+                          const isPast = isToday && slotDateTime < now;
 
                           return (
                             <Pressable
                               onPress={
-                                isReserved
+                                isReserved || isPast
                                   ? undefined
                                   : user && profile && profile.rut !== undefined
                                   ? () => {
@@ -363,24 +442,25 @@ export function FieldsList({
                                     }
                               }
                               key={idx}
-                              disabled={isReserved}
+                              disabled={isReserved || isPast}
                               style={{
-                                backgroundColor: isReserved
-                                  ? "#e9ecef"
-                                  : "#28a745",
+                                backgroundColor:
+                                  isReserved || isPast ? "#e9ecef" : "#28a745",
                                 paddingVertical: 12,
                                 paddingHorizontal: 18,
                                 borderRadius: 10,
-                                opacity: isReserved ? 0.8 : 1,
+                                opacity: isReserved || isPast ? 0.8 : 1,
                                 minWidth: 95,
                                 alignItems: "center",
                                 borderWidth: 1,
-                                borderColor: isReserved ? "#dee2e6" : "#28a745",
+                                borderColor:
+                                  isReserved || isPast ? "#dee2e6" : "#28a745",
                               }}
                             >
                               <Text
                                 style={{
-                                  color: isReserved ? "#6c757d" : "white",
+                                  color:
+                                    isReserved || isPast ? "#6c757d" : "white",
                                   fontWeight: "600",
                                   fontSize: 14,
                                   textAlign: "center",
