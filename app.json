@@ -47,5 +47,9 @@
         "projectId": "93c8e793-497f-49a0-a3c1-510cad5e0e31"
       }
     }
+  },
+
+  "extra": {
+    "API_URL": "https://my-court-api.onrender.com/"
   }
 }

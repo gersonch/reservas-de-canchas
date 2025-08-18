@@ -14,14 +14,14 @@ const getConfig = (): Config => {
   if (isDev && !isExpo) {
     // Desarrollo local
     return {
-      API_URL: "http://172.20.10.6:3000",
+      API_URL: "http://192.168.1.3:3000",
       DEBUG: true,
       APP_ENV: "development",
     };
   } else if (isExpo || Constants.executionEnvironment === "standalone") {
     // Aplicación empaquetada (APK/IPA)
     return {
-      API_URL: "http://192.168.1.3:3000", // Cambia esta URL por tu API real
+      API_URL: "https://my-court-api.onrender.com", // Cambia esta URL por tu API real
       DEBUG: false,
       APP_ENV: "production",
     };
