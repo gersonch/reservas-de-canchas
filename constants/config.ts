@@ -28,7 +28,7 @@ const getConfig = (): Config => {
   } else {
     // Staging o preview
     return {
-      API_URL: "http://192.168.1.3:3000", // Cambia esta URL por tu API de staging
+      API_URL: "https://my-court-api.onrender.com", // Cambia esta URL por tu API de staging
       DEBUG: true,
       APP_ENV: "staging",
     };
