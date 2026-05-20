@@ -56,7 +56,6 @@ export default function RegisterScreen() {
   const showToast = (type: string, message: string) => {
     Toast.show({
       type: type,
-      text1: "Éxito",
       text2: message,
       position: "bottom",
       visibilityTime: 3000,
@@ -75,8 +74,8 @@ export default function RegisterScreen() {
         return;
       }
       showToast("success", "Registro exitoso");
-    } catch (error) {
-      showToast("error", error.response?.data?.message || "Error al registrar");
+    } catch {
+      showToast("error", "Error al registrar");
     }
   };
 

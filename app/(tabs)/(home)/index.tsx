@@ -20,7 +20,7 @@ type Complex = {
   _id: string;
 };
 
-export default function Home() {
+function Home() {
   const [isLoading, setIsLoading] = useState(true); // Cambiar a true para mostrar skeleton inicial
   const [isModalOpen, setIsModalOpen] = useState(false);
   const searchModalRef = useRef<{ openModal: () => void }>(null);
@@ -39,7 +39,7 @@ export default function Home() {
         if (!isRefresh) {
           setIsLoading(true);
         }
-        const complexes = await fetchData("complexes");
+        const complexes = await fetchData("complexes?page=1&limit=5");
         if (
           complexes &&
           complexes.data &&
@@ -68,6 +68,7 @@ export default function Home() {
 
   useEffect(() => {
     fetchComplejos(); // Carga inicial sin parámetro (isRefresh = false por defecto)
+    console.log("Complejos cargados:", complejos); // Verificar que los complejos se están cargando
   }, [fetchComplejos]);
 
   function handleSearchPressable() {
@@ -228,3 +229,4 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
 });
+export default Home;

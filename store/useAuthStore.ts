@@ -88,7 +88,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   loginGoogle: async (accessToken?: string) => {
     set({ loading: true });
     try {
-      const response = await api.get(`${API_URL}/auth/google`, {
+      const response = await api.get(`${API_URL}/auth/google/mobile`, {
         params: { accessToken },
       });
 

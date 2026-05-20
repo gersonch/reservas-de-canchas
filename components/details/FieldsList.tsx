@@ -1,6 +1,5 @@
 import { AnimatedAccordion } from "@/components/ui/AnimatedAccordion";
 import { AnimatedIcon } from "@/components/ui/AnimatedIcon";
-import { API_URL } from "@/constants/config";
 import api from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useProfileStore } from "@/store/useProfileStore";
@@ -150,6 +149,11 @@ export function FieldsList({
     selectedDate: Date,
     field: Field
   ) => {
+    if (!user?.id) {
+      showToast("error", "Debes iniciar sesión para reservar");
+      return;
+    }
+
     const [hour] = slot.split(":");
     const selectedDateObj = new Date(selectedDate);
     selectedDateObj.setHours(parseInt(hour), 0, 0, 0);
@@ -157,24 +161,33 @@ export function FieldsList({
     // Enviar el objeto Date directamente
     const reservationData = {
       fieldId: field._id,
-      userId: user?.id,
-      startTime: selectedDateObj, // <-- aquí va como Date
+      startTime: selectedDateObj.toISOString(), // Enviar como ISO string
       complexId: field.complexId,
       price: 12000,
       duration: "01:00",
     };
 
+    console.log("📤 Reservando:", JSON.stringify(reservationData, null, 2));
+
     try {
       const response = await api.post(
-        `${API_URL}/reservations`,
+        "/reservations",
         reservationData
       );
       const newReservation = response.data;
       setReservations((prev) => [...prev, newReservation]);
       showToast("success", "Reserva exitosa");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error al reservar:", error);
-      showToast("error", "Error al reservar");
+      console.error("📨 Respuesta del servidor:", error.response?.data);
+
+      // Manejar error 400 específico (slot ya reservado por otro usuario)
+      if (error.response?.status === 400) {
+        const message = error.response?.data?.message || "Este horario ya fue reservado";
+        showToast("error", message);
+      } else {
+        showToast("error", "Error al reservar");
+      }
     }
   };
 
@@ -301,10 +314,11 @@ export function FieldsList({
                     }));
                     try {
                       const response = await api.get(
-                        `${API_URL}/reservations/${field._id}`
+                        `/reservations/${field._id}`
                       );
-                      const data = response.data;
-                      setReservations(data);
+                      // La API devuelve { data: [...], pagination: {...} }
+                      const data = response.data?.data || response.data;
+                      setReservations(Array.isArray(data) ? data : []);
 
                       setLoadingSlots((slots) => ({
                         ...slots,

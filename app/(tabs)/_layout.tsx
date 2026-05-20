@@ -12,7 +12,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="(home)/index"
+        name="(home)"
         options={{
           title: "Home",
           tabBarIcon: ({ color }) => (
@@ -20,7 +20,6 @@ export default function TabLayout() {
           ),
         }}
       />
-
       <Tabs.Screen
         name="(reservas)"
         options={{
@@ -39,9 +38,8 @@ export default function TabLayout() {
           ),
         }}
       />
-
       <Tabs.Screen
-        name="(login)/index"
+        name="(login)"
         options={
           !user
             ? {

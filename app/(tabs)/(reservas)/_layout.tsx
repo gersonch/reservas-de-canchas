@@ -2,7 +2,7 @@ import { RestrictedAccess } from "@/components/RestrictedAcces";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Slot } from "expo-router";
 
-export default function ReservasLayout() {
+function ReservasLayout() {
   const { user } = useAuthStore();
   if (!user) {
     // Si no hay sesión, redirige al login
@@ -10,3 +10,4 @@ export default function ReservasLayout() {
   }
   return <Slot />;
 }
+export default ReservasLayout;

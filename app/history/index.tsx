@@ -49,8 +49,8 @@ function ReservationHistory() {
           }
         );
         setReservas(response.data);
-      } catch (error) {
-        throw new Error("Error al obtener historial");
+      } catch {
+        console.log("Error fetching reservation history");
       } finally {
         setLoading(false);
         setLoadingMore(false);

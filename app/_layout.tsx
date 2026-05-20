@@ -5,7 +5,7 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-import "react-native-reanimated";
+// import "react-native-reanimated"; // Temporarily disabled due to worklets version conflict
 import Toast, {
   BaseToast,
   ErrorToast,
@@ -52,7 +52,7 @@ const toastConfig = {
   ),
 };
 
-export default function RootLayout() {
+function RootLayout() {
   const { checkAuth, loading, user } = useAuthStore();
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
@@ -78,3 +78,4 @@ export default function RootLayout() {
     </ThemeProvider>
   );
 }
+export default RootLayout;

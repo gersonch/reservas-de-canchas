@@ -32,6 +32,9 @@ api.interceptors.request.use(async (config) => {
   const token = await SecureStore.getItemAsync("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+    console.log("📤 Token enviado:", token.substring(0, 20) + "...");
+  } else {
+    console.log("⚠️ No hay token para:", config.url);
   }
   return config;
 });

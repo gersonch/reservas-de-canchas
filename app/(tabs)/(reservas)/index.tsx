@@ -5,7 +5,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { Entypo, FontAwesome } from "@expo/vector-icons";
 import { format } from "date-fns";
 import { Link } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import {
   ActivityIndicator,
@@ -18,7 +18,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function Reservar() {
+function Reservar() {
   const [reservas, setReservas] = useState<any[]>([]);
   const { user, token } = useAuthStore();
   const [refresh, setRefresh] = useState(false);
@@ -35,34 +35,42 @@ export default function Reservar() {
     "Sábado",
   ];
 
-  const fetchReservas = async (isRefresh = false) => {
-    if (!user) return;
+  const fetchReservas = useCallback(
+    async (isRefresh = false) => {
+      if (!user) return;
 
-    try {
-      // Solo mostrar skeleton en carga inicial, no en refresh
-      if (!isRefresh) {
-        setInitialLoading(true);
+      try {
+        // Solo mostrar skeleton en carga inicial, no en refresh
+        if (!isRefresh) {
+          setInitialLoading(true);
+        }
+        const response = await api.get(`${API_URL}/reservations/user`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        // La API devuelve { data: [...], pagination: {...} }
+        const reservasData = response.data?.data || response.data;
+        // Asegurar que siempre sea un array
+        setReservas(Array.isArray(reservasData) ? reservasData : []);
+      } catch {
+        setReservas([]);
+      } finally {
+        setInitialLoading(false);
       }
-      const response = await api.get(`${API_URL}/reservations/user`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setReservas(response.data);
-    } catch (error) {
-      throw new Error("Error al obtener reservas");
-    } finally {
-      setInitialLoading(false);
-    }
-  };
+    },
+    [user, token]
+  );
 
   useEffect(() => {
     fetchReservas(); // Carga inicial
-  }, [user]);
+    console.log(reservas);
+  }, [fetchReservas]);
 
   function handleRefresh() {
     setRefresh(true);
     fetchReservas(true); // Pasamos true para indicar que es refresh
+    
     setTimeout(() => {
       setRefresh(false);
     }, 1000);
@@ -305,3 +313,4 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
 });
+export default Reservar;

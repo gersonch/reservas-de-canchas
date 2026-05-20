@@ -1,8 +1,8 @@
 import { useLocationStore } from "@/store/useLocation";
 import * as Location from "expo-location";
+
 import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
-
 export default function LocationComponent() {
   const city = useLocationStore((state) => state.city);
   const setCity = useLocationStore((state) => state.setCity);
@@ -27,7 +27,8 @@ export default function LocationComponent() {
       if (address.length > 0) {
         const locationInfo = address[0];
         // Si city está vacío o es muy específico, usa region
-        let ciudad = locationInfo.region;
+
+        let ciudad = locationInfo.city;
         if (!ciudad || ciudad.length < 3 || ciudad === locationInfo.district) {
           ciudad = locationInfo.region;
         }

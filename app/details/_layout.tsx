@@ -1,7 +1,7 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 
-export default function DetailsLayout() {
+function DetailsLayout() {
   return (
     <>
       <StatusBar style="dark" />
@@ -11,3 +11,5 @@ export default function DetailsLayout() {
     </>
   );
 }
+
+export default DetailsLayout;

@@ -37,8 +37,15 @@ export function CardDetalles({ item, param }: { item: IComplejo; param: any }) {
 
   useEffect(() => {
     const fetchFields = async () => {
-      const response = await api.get(`${API_URL}/fields/complex/${param}`);
-      setFields(response.data);
+      try {
+        const response = await api.get(`${API_URL}/fields/complex/${param}`);
+        // La API devuelve { data: [...], pagination: {...} }
+        // Necesitamos acceder a response.data.data para obtener el array
+        const fieldsData = response.data?.data || response.data;
+        setFields(Array.isArray(fieldsData) ? fieldsData : []);
+      } catch {
+        setFields([]);
+      }
     };
 
     const fetchRatingForComplex = async () => {
@@ -49,9 +56,8 @@ export function CardDetalles({ item, param }: { item: IComplejo; param: any }) {
         } else {
           setNumberOfStars(null);
         }
-      } catch (error) {
+      } catch {
         setNumberOfStars(null);
-        console.error("Error fetching rating for complex:", error);
       }
     };
 

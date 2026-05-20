@@ -8,7 +8,7 @@ export const fetchData = async (route: string) => {
     if (!response) {
       throw new Error("Network response was not ok");
     }
-    const data = await response;
+    const data = await response.data;
     return data;
   } catch (error) {
     if (DEBUG) {
